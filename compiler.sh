@@ -26,7 +26,7 @@ if [ $? -eq 0 ]; then
   sleep 1
 fi
 
-which main
+which make
 
 if [ $? -ne 0 ]; then
   echo ""
