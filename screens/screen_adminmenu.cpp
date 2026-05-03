@@ -6,6 +6,7 @@
 #include "../ui/drawing.hpp"
 #include "../ui/objects.hpp"
 #include "../reports/inform.hpp"
+#include "../reports/htmlreport.hpp"
 #include "../platform/pty.hpp"
 #include "../platform/ipvalid.hpp"
 
@@ -41,11 +42,14 @@ void screenAdminmenuUpdate(Screen &currentScreen,
         enterConfigPtr->status      = isPressed(enterConfigPtr);         // de los botones de salir, actualizar datos
         refreshPtr->status          = isPressed(refreshPtr);             // o ingresar a la pantalla CONFIGURATION
         cambiarFrontendPtr->status  = isPressed(cambiarFrontendPtr);     // o cambiar el modo del frontend
+        backupPtr->status           = isPressed(backupPtr);              // o ejecutar un backup
 
         if (exitAdminPtr->status == 4 ||
             enterConfigPtr->status == 4 ||
             refreshPtr->status == 4 ||
-            cambiarFrontendPtr->status == 4)          // Si alguno de esos cuatro botones anteriores llega a recibir el estado 4 (fue presionado) se ejecutará el siguiente bloque de código
+            cambiarFrontendPtr->status == 4 ||
+            backupPtr->status == 4
+            )          // Si alguno de esos cuatro botones anteriores llega a recibir el estado 4 (fue presionado) se ejecutará el siguiente bloque de código
         {
             restartTerminal = true;                                                                       // Se activa el reinicio de las credenciales de la pestaña "Terminal"
             columnSelected  = columnsVec[0]->id;                                                          // La columna seleccionada ahora será la primera en el vector columnsVec
@@ -59,16 +63,22 @@ void screenAdminmenuUpdate(Screen &currentScreen,
                     cedulaBarPtr->status = 4;                           // El estado de la barra de entrada cedulaBar, pasará a estado 3, para automáticamente recibir datos de entrada
                     return;                                             // Retorno de la función
                 }
-                else if (refreshPtr->status == 4)
+                else if (refreshPtr->status == 4)                       // Si el botón presionado fue el de refrescar los datos...
                 {
                     updateData();                                       // En caso de que el botón presionado fue el de actualizar los datos, procederá a ejecutar updateData()
                     objectCreation();                                   // Como se actualizaron los datos, existe la posibilidad de que botones, tablas o columnas ya no existan, entonces se vuelven a crear los objetos
                     return;                                             // Retorno de la función
                 }
-                else if (cambiarFrontendPtr->status == 4)
+                else if (cambiarFrontendPtr->status == 4)               // Si el botón para cambiar el modo del frontend fue presionado...
                 {
                     darkMode = darkMode ? false : true;                 // Cambia el valor de darkMode, si era verdadero lo cambia a falos, y viceversa
                     COLORTEXTO = darkMode ? WHITE : BLACK;              // Cambia el color del texto de los textos que deben de ser cambiados para su correcta visualización
+                    return;                                             // Retorno de la función
+                }
+                else if (backupPtr->status == 4)                        // Si el botón para hacer backups fue presionado...
+                {
+                    backupRetString = ptyfunc("backup", *user, *password, *server, *port, *database);     // Ejecuta un backup de la base de datos y guarda la respuesta acá
+                    backupReleased = true;                              // Informa que se realizó un backup
                     return;                                             // Retorno de la función
                 }
                 else                                                    // Si el botón presionado no fue ni el de salir ni el de actualizar, entonces significa que fue el de entrar a la configuración, así que procederá a ejecutar lo siguiente
@@ -195,6 +205,8 @@ void screenAdminmenuUpdate(Screen &currentScreen,
                             adminButtons[1]->outLog    += outQuery;                                   // Se introduce el resultado de la query a outLog, para visualizar la información de respuesta de la base de datos
                             adminButtons[1]->selfquery  = "INSERT INTO "s + tableSelected + " (";     // Se reinicia la query de la pestaña "Agregar", esto para prepararse para otra futura query
                             agrCnt = 0;       // Reinicia el contador a cero
+                            updateData();                                                             // Se actualiza la información, ya que fue modificada
+                            objectCreation();                                                         // Se vuelven a crear los objetos, pero solo los relacionados a la base de datos
                         }
                     }
                 }
@@ -297,6 +309,8 @@ void screenAdminmenuUpdate(Screen &currentScreen,
                                 adminButtons[2]->outLog    += outQuery;                                         // El resultado de la query se introduce en outLog para mostrarlo en el frontend
                                 adminButtons[2]->selfquery  = "UPDATE "s + tableSelected + " SET "s;            // Se reinicia la query de la pestaña "Actualizar" para prepararse en caso de una query nueva
                                 actCnt = 0;   // Se reinicia el contador
+                                updateData();                                                                   // Se actualiza la información, ya que fue modificada
+                                objectCreation();                                                               // Se vuelven a crear los objetos, pero solo los relacionados a la base de datos
                             }
                         }
                     }
@@ -321,11 +335,13 @@ void screenAdminmenuUpdate(Screen &currentScreen,
                             adminButtons[3]->outLog    += outQuery;                                           // Se almacena el resultado de la query dentro de outLog, para ver la respuesta en el frontend
                             adminButtons[3]->selfquery  = "DELETE FROM "s + tableSelected + " WHERE "s;       // Se reinicia la query de la pestaña "Borrar", esto para prepararse en caso de una futura query
                             borCnt = 0;       // Se reinicia el contador
+                            updateData();                                                                     // Se actualiza la información, ya que fue modificada
+                            objectCreation();                                                                 // Se vuelven a crear los objetos, pero solo los relacionados a la base de datos
                         }
                     }
                 }
             }
-        }   // <---- FÏN DEL BUCLE FOR PADRE QUE RECORRE TODAS LAS COLUMNAS
+        }   // <---- FÍN DEL BUCLE FOR PADRE QUE RECORRE TODAS LAS COLUMNAS
     }   // FÍN DEL IF QUE VERIFICABA QUE LA PESTAÑA ACTUAL NO FUERA NI EXPLORAR, NI RESULTADOS, NI TERMINAL
 
     // ── Explorar ──────────────────────────────────────────────────────────────
@@ -475,7 +491,7 @@ void screenAdminmenuUpdate(Screen &currentScreen,
                 if (strresultados[chr] != '\n') votes += strresultados[chr];                          // Este bucle es casi el mismo que el que se encuentra alrededor de la línea 440, su propósito es guardar los valores del string strresultados
                 else if (!votes.empty()) { quantities.push_back(std::stoi(votes)); votes = ""; }      // como valores enteros dentro del nuevo vector quantities
             }
-            successfulPdfCreation = inform(percentages, quantities);      // Ahora con los vectores que almacenan las cantidades y porcentajes, se puede llamar a inform() para crear el pdf, y el código de estado lo almacenará successfulPdfCreation
+            successfulPdfCreation = htmlreport(percentages, quantities);      // Ahora con los vectores que almacenan las cantidades y porcentajes, se puede llamar a inform() para crear el pdf, y el código de estado lo almacenará la variale
         }
 
         statistics("backend", outResultsMode, percentages, partidosVec);      // Esta función se encarga de siempre llamar la gráfica, se llama siempre al final de la pestaña
@@ -601,6 +617,7 @@ void screenAdminmenuDraw(bool &invalidCredentials,                              
     enterConfigPtr->status      = isPressed(enterConfigPtr);         // de los botones de salir, actualizar datos
     refreshPtr->status          = isPressed(refreshPtr);             // o ingresar a la pantalla CONFIGURATION
     cambiarFrontendPtr->status  = isPressed(cambiarFrontendPtr);     // o cambiar el modo del frontend
+    backupPtr->status           = isPressed(backupPtr);              // o ejecutar un backup de la base de datos
     // Se actualiza el estado de cada botón no seleccionado cada frame para que PrettyDrawRectangle
     // detecte el hover y cambie el grosor del borde dorado correctamente
     for (int i = 0; i < (int)adminButtons.size(); i++)
@@ -670,11 +687,11 @@ void screenAdminmenuDraw(bool &invalidCredentials,                              
     else if (adminSelected == butnames[4])                                                                    // Si la pestaña actual es "Explorar"
     {
         DrawRectangle(explorarSquare[0], explorarSquare[1], explorarSquare[2], explorarSquare[3],             // Dibuja el cuadro de fondo de los datos de "Explorar"
-                      {45, 45, 48, 255});
+                      darkMode ? (Color){45, 45, 48, 255} : (Color){220, 200, 160, 255});
         drawSelected(tablesVec, littleFontSize, tableSelected);                                               // Dibuja las tablas
-        DrawTextEx(fontTtf, explorarFinalOutput.data(),                                                       // Y dibuja la salida de la información de la tabla actual
+        DrawTextEx(monoTtf, explorarFinalOutput.data(),                                                       // Y dibuja la salida de la información de la tabla actual
                    (Vector2){(float)(screenWidth * 0.13), (float)(explorarSquare[1] * 1.095)},
-                   littleFontSize, 2, WHITE);
+                   littleFontSize, 2, COLORTEXTO);
     }
     // ── Resultados ─────────────────────────────────────────────────────────────────────────
     else if (adminSelected == butnames[5])                                                                    // Si la pestaña actual es resultados
@@ -749,8 +766,12 @@ void screenAdminmenuDraw(bool &invalidCredentials,                              
 
     // Botones en las esquinas
 
+    if (backupReleased) shortmessage(backupRetString, mediumFontSize, backupReleased);      // Si se realizó un backup, muestra el mensaje de respuesta del backup
+
+
     PrettyDrawRectangle(enterConfigPtr);      // Dibuja el botón para entrar a la configuración del programa
     PrettyDrawRectangle(exitAdminPtr);        // Dibuja el botón para salir del panel de administración
     PrettyDrawRectangle(refreshPtr);          // Dibuja el botón para refrescar los datos cargados desde la base de datos
     PrettyDrawRectangle(cambiarFrontendPtr);  // Dibuja el botón para cambiar el modo del frontend de claro a oscuro
+    PrettyDrawRectangle(backupPtr);          // Dibuja el botón para refrescar los datos cargados desde la base de datos
 }

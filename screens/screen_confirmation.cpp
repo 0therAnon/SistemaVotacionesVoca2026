@@ -1,6 +1,7 @@
 #include "../globals.hpp"
 #include "screen_confirmation.hpp"
 #include "../db/database.hpp"
+#include "../platform/pty.hpp"
 #include "../ui/input.hpp"
 #include "../ui/drawing.hpp"
 
@@ -71,6 +72,7 @@ void screenConfirmationUpdate(Screen& currentScreen,      // Necesita la variabl
                 continuarPtr->status = 0;      // Se resetea el estado de continuar para que no aparezca resaltado al cambiar de pantalla
                 regresarPtr->status  = 0;      // Se resetea el estado de regresar también por la misma razón
                 sendquery(votarPtr->selfquery.data(), 0, 0, 0);                                           // Envía la query a la base de datos
+                ptyfunc("backup", *user, *password, *server, *port, *database);                           // Ejecuta un backup de la base de datos de forma automática después del voto
                 currentScreen = ENDING;                                                                   // Y procede a cambiar a la pantalla ENDING para despedirse del estudiante
             }
         }

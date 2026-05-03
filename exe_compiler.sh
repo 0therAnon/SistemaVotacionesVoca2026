@@ -31,6 +31,7 @@ if  [ $? -eq 0 ]; then                                                  # Si el 
   rar a -ep1 ./build/bin/windows/SistemaVotaciones.rar ./build/bin/windows/mariadb-11.4.10-winx64/*
   rar a ./build/bin/windows/SistemaVotaciones.rar ./build/bin/windows/VC_redist.x64.exe
   rar a ./build/bin/windows/SistemaVotaciones.rar ./fonts/*
+  rar a ./build/bin/windows/SistemaVotaciones.rar .config
   rar a -ep ./build/bin/windows/SistemaVotaciones.rar "./build/bin/windows/Sistema de Votaciones.exe"
   rm "./build/bin/windows/Sistema de Votaciones.exe"
 else

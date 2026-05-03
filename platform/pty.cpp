@@ -1,5 +1,7 @@
 #include "pty.hpp"
 #include <string>                     // Llama a la librería string, ya que se necesitan usar diversos formatos de string a continuación, como wstring y funciones para manipular los strings
+#include <chrono>
+#include <iostream>
 
 /* A continuación, ptyfunc() sirve para la ejecución de comandos a través de una pseudoconsola, una pseudoconsola, o también llamada PTY, es una consola/terminal que simula ser una terminal interactiva,
    una terminal interactiva es necesaria para que la respuesta de la base de datos muestre de forma gráfica las tablas usando los pipes |, guiones - y símbolos de suma +, con todo esto se puede ver de manera
@@ -56,14 +58,36 @@ std::string ptyfunc(std::string sqlinput,         // Comando a ejecutar
     std::wstring portwstr = to_wstring(inputport);      // Windows trabaja con UTF-16,
     std::wstring basewstr = to_wstring(inputdatabase);  // y widechar es lo mismo a UTF-16
 
-    std::wstring cmd = L".\\bin\\mariadb.exe";          // Empieza a armar el comando a ejecutar en la pseudoconsola: .\bin\mariadb.exe
+    std::wstring cmd;
+
+    if (sqlinput != "backup")                           // Si el comando a ejecutar NO es "backup", el cual es un comando personalizado del sistema de votaciones, entonces armará una query normalmente
+        cmd = L".\\bin\\mariadb.exe";      // Empieza a armar el comando a ejecutar en la pseudoconsola: .\bin\mariadb.exe
+    else                                                // En caso de que el comando SÍ sea "backup", procederá a realizar un backup de la base de datos
+        cmd = L"if (!(Test-Path \".\\backups\")) { New-Item -ItemType Directory -Path \".\\backups\" } ; .\\bin\\mariadb-dump.exe"; // Empieza a armar la query para el backup
+
     cmd += L" -u"; cmd += userwstr;                     // .\bin\mariadb.exe -u usuario
     cmd += L" -p"; cmd += passwstr;                     // .\bin\mariadb.exe -u usuario -p contraseña
-    cmd += L" -D "; cmd += basewstr;                    // .\bin\mariadb.exe -u usuario -p contraseña -D basededatos
+    if (sqlinput != "backup")                           // Si el comando a ejecutar NO es "backup", el cual es un comando personalizado del sistema de votaciones, entonces armará una query normalmente
+        {cmd += L" -D "; cmd += basewstr;}              // .\bin\mariadb.exe -u usuario -p contraseña -D basededatos
+    else                                                // Si el comando a ejecutar SÍ es "backup", cambiará la forma de llamar al argumento para especificar el nombre de la base de datos, ya que mariadb-dump usa otro argumento para esto
+        {cmd += L" --databases "; cmd += basewstr;}     // Procede a llamar a la base de datos con "--databases" en vez de "-D"
     cmd += L" -h "; cmd += srvrwstr;                    // .\bin\mariadb.exe -u usuario -p contraseña -D basededatos -h ipservidor
     cmd += L" -P "; cmd += portwstr;                    // .\bin\mariadb.exe -u usuario -p contraseña -D basededatos -h ipservidor -P puerto
-    cmd += L" -e \""; cmd += sqliwstr;                  // .\bin\mariadb.exe -u usuario -p contraseña -D basededatos -h ipservidor -P puerto -e "comando
-    cmd += L"\"";                                       // .\bin\mariadb.exe -u usuario -p contraseña -D basededatos -h ipservidor -P puerto -e "comando"
+
+    if (sqlinput != "backup")                           // Si el comando NO es "backup", el cual es un comando personalizado del sistema de votaciones, entonces seguirá armando la query normalmente
+    {
+        cmd += L" -e \""; cmd += sqliwstr;              // .\bin\mariadb.exe -u usuario -p contraseña -D basededatos -h ipservidor -P puerto -e "comando
+        cmd += L"\"";                                   // .\bin\mariadb.exe -u usuario -p contraseña -D basededatos -h ipservidor -P puerto -e "comando"
+    }
+    else                                                // Si el comando SÍ es "backup", entonces procederá a crear una redirección a un archivo dentro de la carpeta backups
+    {
+        auto now = std::chrono::system_clock::now();
+        std::wstring nowWstr = std::format(L"{:%Y-%m-%d-%H-%M-%S}", now);
+        cmd += L" > \".\\backups\\backup_" + nowWstr;
+        cmd += L".sql\"";
+    }
+
+    std::wcout<<cmd<<"\n";
 
     /* Se crean los pipes para la comunicación, los cuales sirven para enviar datos de entrada o salida como recibir datos de entrada o salida
 
@@ -175,6 +199,7 @@ std::string ptyfunc(std::string sqlinput,         // Comando a ejecutar
 #include <pty.h>          // Se necesita para la función forkpty() para ejecutar un comando con un proceso hijo
 #include <unistd.h>       // Sirve para leer los datos de salida del proceso hijo, ejecutr en el proceso hijo y salir del proceso hijo
 #include <sys/wait.h>     // Sirve para la función wait() para esperar a la finalización correcta del proceso hijo
+#include <cstdlib>
 
 std::string ptyfunc(std::string sqlinput,           // Pide como argumento el comando a ejecutar con el servidor MySQL
                     std::string inputuser,          // Usuario a autenticar
@@ -183,20 +208,45 @@ std::string ptyfunc(std::string sqlinput,           // Pide como argumento el co
                     std::string inputport,          // Puerto de servidor
                     std::string inputdatabase)      // Nombre de base de datos
 {
-    std::string outTerm = "";                                           // Se declara outTerm, string que servirá para recibir la respuesta de la base de datos
     using namespace std::string_literals;                               // Se usa para concatenar los strings usando ""s
-    std::string userarg = "--user="s + inputuser;                       // --user=usuario
-    std::string passarg = "--password="s + inputpass;                   // --password=contraseña
-    std::string srvrarg = "--host="s + inputserver;                     // --host=ipservidor
-    std::string portarg = "--port="s + inputport;                       // --port=puerto
-    std::string basearg = "--database="s + inputdatabase;               // --database=basededatos
-    std::string query   = "-e "s + sqlinput;                            // --e comando
+
+    if (sqlinput == "backup")     // En caso de que sqlinput (el comando ingresado) sea igual al comando personalizado para generar backups...
+    {
+        auto now = std::chrono::system_clock::now();                                          // now almacena la hora actual
+        std::string nowStr = std::format("{:%Y-%m-%d-%H-%M-%S}", now);                        // Se convierte a un formato en el que pueda separarse todo con guiones, para evitar usar ":" los cuales no pueden usarse como títulos de archivos
+        int stateCode;                                                                        // Almacena el código de estado de cada comando, esto para recibir información en caso de errores
+        std::string cmd;                                                                      // Almacena el comando a ejecutar
+        cmd = "/usr/bin/mkdir -p ./backups/";                                                 // Crea la carpeta backups si NO existe
+        stateCode = std::system(cmd.data());                                                  // El valor del código de estado del comando se almacena en stateCode
+        if (stateCode != 0) return "Hubo un error al crear la carpeta de backups";            // Si el código de estado NO es igual a cero significa que hubo un error, entonces informará que no se creo la carpeta correctamente
+        cmd = "/usr/bin/mysqldump "s +                                                        // Si no hubo un error con el comando anterior, prepara el comando para dumpear la base de datos
+              " --user "s + inputuser +
+              " --password="s + inputpass +
+              " --host "s + inputserver +
+              " --port "s + inputport +
+              " --databases "s + inputdatabase +
+              " > ./backups/backup_"s + nowStr;                                               // Además de que redirige la salida a ./backups/backup_HORAACTUAL
+        stateCode = std::system(cmd.data());                                                  // Ejecuta el comando y almacena el código de estado
+        if (stateCode != 0) return "Hubo un error al generar el backup de la base de datos";  // Si el código de estado es distinto a cero significa que hubo un error al generar el backup
+        return "Se hizo el backup con éxito";                                                 // En caso de que el comando anterior haya ocurrido bien, retornará que más bien todo se creó con éxito, e inmediatamente saldrá de la función
+    }
+
+    /* "backup" es muy util ya que sirve tanto en la terminal como también como función desde el botón de backup en el panel de administración.
+        En caso de que sqlinput NO sea "backup", se ejecutará lo siguiente como si hubiese sido un comando común: */
+
+    std::string outTerm = "";                                           // Se declara outTerm, string que servirá para recibir la respuesta de la base de datos
+    std::string userarg = "--user="s + inputuser;                                   // --user=usuario
+    std::string passarg = "--password="s + inputpass;                               // --password=contraseña
+    std::string srvrarg = "--host="s + inputserver;                                 // --host=ipservidor
+    std::string portarg = "--port="s + inputport;                                   // --port=puerto
+    std::string basearg = "--database="s + inputdatabase;                           // --database=basededatos
+    std::string query   = "-e "s + sqlinput;                                        // --e comando | Esta línea para abajo ocurre en caso de que el comando "backup" no haya sido ingresado
 
     int master;                                                         // Declaración de master, que será la dirección en la memoria donde se hará el fork al proceso hijo
     pid_t pid = forkpty(&master, nullptr, nullptr, nullptr);            // Se ejecuta el proceso hijo, se almacenará el PROCESS IDENTIFIER del proceso en la variable pid
     if (pid == 0)                                                       // Si el pid es igual a 0, significa que la variable ahora almacena el proceso hijo con éxito, entonces...
     {
-        execlp("mysql", "mysql",                                        // Ejecutará a mysql con los argumentos que se armaron previamente
+        execlp("/usr/bin/mysql", "/usr/bin/mysql",                                        // Ejecutará a mysql con los argumentos que se armaron previamente
                userarg.data(), passarg.data(), srvrarg.data(),
                basearg.data(), query.data(), nullptr);                  // Y después de escribir el último argumento hay que escribir un nullptr al final, esto para indicarle a execlp() que ya no se necesitan más argumentos
         _exit(1);                                                       /* Al ejecutar execlp() en el proceso hijo, el proceso hijo nunca debería retornar, y si llega a retornar sería en caso de que haya ocurrido un error

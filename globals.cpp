@@ -51,7 +51,7 @@ char** nameTableEstudiantes     = &configurations[7];   // como nombres de colum
 char** nameTablePartidos        = &configurations[8];   // la base de datos en caso de usar una distinta
 
 char** pathProgramFont          = &configurations[13];  // Estos valores son rutas a los fonts
-char** pathLogsFont              = &configurations[14];  // que el sistema necesita que son
+char** pathLogsFont             = &configurations[14];  // que el sistema necesita que son
 char** pathPdfFont              = &configurations[15];  // necesarios para el programa y el PDF de informe
 char** informeName              = &configurations[16];  // como también la definición del nombre de salida del PDF
 
@@ -79,8 +79,10 @@ std::vector<std::string> logCommands;             // Vector que almacenará el h
 std::vector<std::string> vecColumns;              // Vector que se encontrará dentro del vector bidimensional vecRows, este sirve para tener las columnas de la fila
 std::vector<std::string> namepartidos;            // Vector que almacenará el nombre de los partidos cargados de la base de datos MySQL
 std::vector<std::string> nametables;              // Vector que almacenará el nombre de las tablas cargadas de la base de datos MySQL
+std::vector<std::string> lastLogs;                // Vector que almacenará los ultimos valores de cada log de adminButtons, se almacenan en este registro para que no se pierdan cuando se llama objectCreation()
 std::vector<double>      percentages;             // Vector que almacenará los porcentajes de los votos de cada partido, se usa principalmente en la función statistics() que se encuentra en ./ui/drawing.cpp
 std::string oldTableSelected  = "";     // Variable que almacena la última tabla seleccionada, sirve principalmente para actualizar las columnas comparando la tabla actual con la vieja en la función drawcolumns() dentro de ./ui/drawing.cpp
+std::string backupRetString   = "";     // Variable que almacena el string de respuesta del backup ejecutado
 std::string partidoSelected   = "";     // Variable que almacena el partido seleccionado por el estudiante en la pantalla VOTATION
 std::string configSelected    = "";     // Variable que almacena la pestaña actual de la pantalla CONFIGURATION
 std::string pdfErrorString    = "";     // Variable que almacena el string de error en caso de un error con la función inform() que se encuentra en el archivo ./reports/inform.cpp
@@ -105,6 +107,7 @@ float screenWidth;          // Valor del tamaño de ancho de la ventana
 float fontSize;             // Tamaño del font del programa
 
 bool adminAuthenticated = false;  // Verifica si el administrador fue autenticado en la pestaña "Terminal" del panel de administración
+bool backupReleased     = false;  // Verifica si se realizó un backup
 bool pdfRandomError     = false;  // Verifica si hubo un error en la creación de los PDFs
 bool pdfFontError       = false;  // Verifica si hubo un error con la carga del font al PDF
 bool tabRestart         = false;  // Sirve como activador en las funciones de moverse entre barras de entrada con la tecla TAB en el panel de administración
@@ -172,5 +175,6 @@ button*    exitAdminPtr         = nullptr;
 button*    regresarPtr          = nullptr;
 button*    informePtr           = nullptr;
 button*    refreshPtr           = nullptr;
+button*    backupPtr            = nullptr;
 button*    cedulaPtr            = nullptr;
 button*    votarPtr             = nullptr;

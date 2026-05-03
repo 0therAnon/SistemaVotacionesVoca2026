@@ -11,6 +11,14 @@ int objectCreation()
 
     // Procedo a limpiar todos los vectores que almacenan los objetos del programa, esto para prevenir de que si la llamaba de esta función ocurre más de una vez, no guarde objetos duplicados en cada vector
 
+    while (!lastLogs.empty())    lastLogs.pop_back();                   // Es el vector que almacena los últimos logs de cada botón, ya que en esta función los botones serán reseteados, entonces almacenará los registros de cada uno
+    if (!adminButtons.empty())                                          // En caso de que el vector adminButtons NO esté vacío, es decir, se llamó a objectCreation para actualizar los objetos, entonces...
+        for (auto btn : adminButtons)                                   // Procederá a recorrer todos los botones del panel de administración
+            lastLogs.push_back(btn->outLog);                            // y almacenará todos los logs de cada botón
+    else                                                                // En caso de que el vector adminButtons SÍ esté vacío, es decir, es la primera vez en la que se van a crear los botones en el programa, entonces...
+        for (int i = 0; i < 7; i++)                                     // Procederá a usar un bucle que correrá 7 veces
+            lastLogs.push_back("");                                     // y el propósito de ese bucle será añadir simplemente un string vacío, ya que los strings de lastLogs se usarán para nombrar las propiedades outLog de cada botón
+
     while (!adminObj.empty())    adminObj.pop_back();                   // Es el vector padre, este vector almacena absolutamente todos los objetos del programa
     while (!tablesVec.empty())   tablesVec.pop_back();                  // Es el vector que almacena las tablas cargadas de la base de datos
     while (!partidosVec.empty()) partidosVec.pop_back();                // Es el vector que almacena los partidos cargados de la base de datos
@@ -96,7 +104,7 @@ int objectCreation()
         btn->yloc        = screenHeight * 0.08;                     // Declaro la posición en el eje Y (altura)
         btn->xsize       = screenWidth / 7.25;                      // Declaro el tamaño del ancho del botón
         btn->ysize       = adminPanel[3] * 0.05;                    // Declaro el tamaño de la altura del botón
-        btn->outLog      = "";                                      // Esta variable almacenará los resultados de las queries según el botón en el panel de administracion, para más información revisar la función logfunction() en ui/drawing.cpp
+        btn->outLog      = lastLogs[i];                             // Esta variable almacenará los resultados de las queries según el botón en el panel de administracion, para más información revisar la función logfunction() en ui/drawing.cpp
         btn->status      = 0;                                       // Se declara el estado del botón, el cual por defecto es 0 (inactivo)
         btn->highColor   = VOCADORADO;                              // Se declara el color del botón cuando tenga que ser resaltado
         btn->normalColor = VOCAAMARILLOSUAVE;                       // Se declara el color del botón cuando no debe ser resaltado
@@ -192,6 +200,16 @@ int objectCreation()
     regresarPtr = regresar.get();
     adminObj.push_back(std::move(regresar));
 
+    // backup button
+    auto backup = std::make_unique<button>();
+    backup->name      = "Backup";
+    backup->xloc      = screenWidth * 0.01;
+    backup->yloc      = screenHeight * 0.97;
+    backup->xsize     = screenWidth * 0.01;
+    backup->ysize     = screenWidth * 0.01;
+    backup->status    = 0;
+    backupPtr = backup.get();
+    adminObj.push_back(std::move(backup));
 
     // cambiarFrontend button
     auto cambiarFrontend = std::make_unique<button>();
@@ -218,7 +236,7 @@ int objectCreation()
     // enterConfig button
     auto enterConfig = std::make_unique<button>();
     enterConfig->name   = "Configuracion";
-    enterConfig->xloc   = screenWidth - (screenWidth * 0.01 * 2);
+    enterConfig->xloc   = screenWidth * 0.98;
     enterConfig->yloc   = screenHeight * 0.01;
     enterConfig->xsize  = screenWidth * 0.01;
     enterConfig->ysize  = screenWidth * 0.01;
@@ -229,10 +247,10 @@ int objectCreation()
     // refresh button
     auto refresh = std::make_unique<button>();
     refresh->name   = "Refrescar";
-    refresh->xloc   = screenWidth  *0.92;
-    refresh->yloc   = screenHeight * 0.92;
-    refresh->xsize  = screenWidth * 0.02;
-    refresh->ysize  = screenWidth * 0.02;
+    refresh->xloc   = screenWidth  * 0.98;
+    refresh->yloc   = screenHeight * 0.97;
+    refresh->xsize  = screenWidth * 0.01;
+    refresh->ysize  = screenWidth * 0.01;
     refresh->status = 0;
     refreshPtr = refresh.get();
     adminObj.push_back(std::move(refresh));
@@ -423,6 +441,9 @@ int objectCreation()
     opcSelectedPtr = opcSelected.get();
     adminObj.push_back(std::move(opcSelected));
 
+    if (adminSelected == "") adminSelected  = butnames[0];             // Define la pestaña seleccionada en el panel de administracion como "Consultar" de manera predeterminada
+    if (configSelected == "") configSelected = confignames[0];          // Define la pestaña seleccionada en el panel de configuración como "Credenciales" de manera predeterminada
+
     if (statusCodeUpdating == 0)              // Si la función updateData() se ejecutó con exito (esta función se encarga de actualizar los datos y comprobar que todo esté bien), entonces se crearán los objetos relacionados a la base de datos
     {
         partidosVec.reserve(quanpartidos);
@@ -447,9 +468,6 @@ int objectCreation()
         }
 
         if (tableSelected == "") tableSelected = tablesVec[0]->name;
-        if (adminSelected == "") adminSelected  = butnames[0];             // Define la pestaña seleccionada en el panel de administracion como "Consultar" de manera predeterminada
-        if (configSelected == "") configSelected = confignames[0];          // Define la pestaña seleccionada en el panel de configuración como "Credenciales" de manera predeterminada
-
 
         adminButtons[0]->selfquery = "SELECT * FROM "s + tableSelected + " WHERE ";   // Se resetea la query de la pestaña "Consultar"
         adminButtons[1]->selfquery = "INSERT INTO "s  + tableSelected + " (";         // Se resetea la query de la pestaña "Agregar"
