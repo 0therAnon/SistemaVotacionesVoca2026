@@ -37,6 +37,7 @@ extern char** nameColumnVotoNombre;
 extern char** nameTableEstudiantes;
 extern char** nameTablePartidos;
 extern char** pathProgramFont;
+extern char** pathLogsFont;
 extern char** pathPdfFont;
 extern char** informeName;
 
@@ -53,6 +54,7 @@ extern Color VOCAAMARILLO;
 extern Color VOCAAMARILLOSUAVE;
 extern Color VOCADORADO;
 extern Color VOCADORADOSUAVE;
+extern Color COLORTEXTO;
 
 // ── File / query state ───────────────────────────────────────────────────────
 extern std::ofstream configFile;
@@ -75,9 +77,11 @@ extern std::string oldbar;
 
 // ── Raylib / UI state ────────────────────────────────────────────────────────
 extern Font  fontTtf;
+extern Font  monoTtf;
 extern float explorarSquare[4];
 extern float mediumFontSize;
 extern float littleFontSize;
+extern float configPanel[4];
 extern float adminPanel[4];
 extern float outSquare[4];
 extern float screenHeight;
@@ -89,6 +93,7 @@ extern bool pdfRandomError;
 extern bool pdfFontError;
 extern bool tabRestart;
 extern bool nullOption;
+extern bool darkMode;
 extern bool showBeam;
 extern bool pdfError;
 
@@ -139,6 +144,7 @@ extern inputBar*  terminalBarPtr;
 extern inputBar*  labNameBarPtr;
 extern inputBar*  cedulaBarPtr;
 extern inputBar*  actBarPtr;
+extern button*    cambiarFrontendPtr;
 extern button*    enterConfigPtr;
 extern button*    saveConfigPtr;
 extern button*    continuarPtr;

@@ -56,15 +56,15 @@ void screenMainmenuDraw()
     DrawTextEx(fontTtf, "Digite su cedula en este campo"s.data(),                                                       // Se muestra un mensaje diciendo de que por favor digite la cédula en la barra
                (Vector2){(float)centertext("Digite su cedula en este campo"s, screenWidth, fontSize),
                           (float)(screenHeight * 0.23)},
-               fontSize, 2, BLACK);
+               fontSize, 2, COLORTEXTO);
     DrawTextEx(fontTtf, "con uno de los siguientes formatos"s.data(),                                                   // Se agrega en la pantalla el mensaje "con los siguientes formatos"
                (Vector2){(float)centertext("con uno de los siguientes formatos"s, screenWidth, fontSize),
                           (float)(screenHeight * 0.3)},
-               fontSize, 2, BLACK);
+               fontSize, 2, COLORTEXTO);
     DrawTextEx(fontTtf, "101110111 | 123456789012 | AZ0000-11111"s.data(),                                              // Y se agregan a la pantalla los tipos de formatos a ingresar
                (Vector2){(float)centertext("101110111 | 123456789012 | AZ0000-11111"s, screenWidth, fontSize),
                           (float)(screenHeight * 0.37)},
-               fontSize, 2, BLACK);
+               fontSize, 2, COLORTEXTO);
     PrettyDrawRectangle(cedulaBarPtr);                                                                                  // Se dibuja el rectángulo de la barra de datos de entrada de la cédula
     PrettyDrawRectangle(cedulaPtr);                                                                                     // Y también se dibuja el botón de la cédula
     DrawTextEx(fontTtf, cedulaPtr->name.data(),

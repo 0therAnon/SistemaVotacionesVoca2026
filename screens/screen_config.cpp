@@ -63,12 +63,13 @@ void screenConfigUpdate(Screen& currentScreen,            // La función necesit
                     free(configurations[7]);  configurations[7]  = strdup(extraBars[0]->input.data());        // Tabla Estudiantes
                     free(configurations[8]);  configurations[8]  = strdup(extraBars[1]->input.data());        // Tabla Partidos
                     free(configurations[9]);  configurations[9]  = strdup(extraBars[5]->input.data());        // Columna Voto
-                    free(configurations[10]); configurations[10]  = strdup(extraBars[4]->input.data());       // Columna Votos
+                    free(configurations[10]); configurations[10] = strdup(extraBars[4]->input.data());        // Columna Votos
                     free(configurations[11]); configurations[11] = strdup(extraBars[2]->input.data());        // Columna Nombre partidos
                     free(configurations[12]); configurations[12] = strdup(extraBars[3]->input.data());        // Partido nulo
                     free(configurations[13]); configurations[13] = strdup(pathBars[0]->input.data());         // Font programa
-                    free(configurations[14]); configurations[14] = strdup(pathBars[1]->input.data());         // Font PDF
-                    free(configurations[15]); configurations[15] = strdup(pathBars[2]->input.data());         // Nombre PDF
+                    free(configurations[14]); configurations[14] = strdup(pathBars[1]->input.data());         // Font outLogs/terminal
+                    free(configurations[15]); configurations[15] = strdup(pathBars[2]->input.data());         // Font PDF
+                    free(configurations[16]); configurations[16] = strdup(pathBars[3]->input.data());         // Nombre PDF
 
                     statusCodeUpdating = updateData();                        // Se actualiza la información de la base de datos y se verifica que la configuración sea correcta, el código de estado de la función se guarda en statusCodeUpdating
                     std::string oldConfigSelected = configSelected;           // Se guarda la última pestaña actual dentro de oldConfigSelected, esto para evitar de que el reinicio de los objetos hagan que la pestaña actual cambie
@@ -92,6 +93,7 @@ void screenConfigUpdate(Screen& currentScreen,            // La función necesit
                             "\nnameTablePartidos="s + *nameTablePartidos + "\n"s;
                         std::string outPaths =
                             "\n[Paths]\npathProgramFont="s + *pathProgramFont +
+                            "\npathLogsFont=" + *pathLogsFont +
                             "\npathPdfFont="s + *pathPdfFont +
                             "\ninformeName="s + *informeName + "\n"s;
                         cfgFile << outCredentials + outExtra + outPaths << std::endl;                 // Se escriben los strings dentro del archivo de configuracion
@@ -225,15 +227,21 @@ void screenConfigDraw(bool &inputEmpty,                 // Estas variables sirve
                       bool &errorUpdating,              // en alguna parte del backend y mostrar
                       bool &errorConfig)                // algun mensaje en este frontend
 {
-    DrawTextEx(fontTtf, "Panel de Configuración"s.data(),                                         // Procede a escribir el título "Panel de Configuración"
-               (Vector2){(float)centertext("Panel de Configuracion"s, screenWidth, fontSize),
-                          (float)(screenHeight * 0.05)},
-               fontSize, 2, BLACK);
+    DrawRectangle(configPanel[0], adminPanel[1],
+                  configPanel[2], configPanel[3], VOCADORADOSUAVE);    // Usa configPanel para dibujarse independientemente del panel de administración
+    DrawLineEx((Vector2){configPanel[0], adminPanel[1]},
+               (Vector2){(configPanel[0]+configPanel[2]), adminPanel[1]},
+                4.0f, DORADO_BORDE);
+    DrawTextEx(fontTtf, "PANEL DE CONFIGURACIÓN"s.data(),                                         // Procede a escribir el título "Panel de Configuración"
+               (Vector2){(float)(centertext("PANEL DE CONFIGURACIÓN"s, screenWidth, fontSize)),
+                          (float)(screenHeight * 0.03)},
+               fontSize, 2, COLORTEXTO);                                                               // WHITE porque el título flota sobre el fondo negro
 
-    drawSelected(configbuttons, littleFontSize, configSelected);                      // Dibuja las pestañas de CONFIGURATION
-    DrawRectangle(adminPanel[0], adminPanel[1] + terminalBarPtr->ysize - 1,           // Dibuja el rectángulo de fondo
-                  adminPanel[2], adminPanel[3], VOCADORADOSUAVE);
+    // Se actualiza el estado de cada botón de pestaña cada frame para detectar hover correctamente
+    for (int i = 0; i < (int)configbuttons.size(); i++)
+        configbuttons[i]->status = isPressed(configbuttons[i]);
 
+    drawSelected(configbuttons, littleFontSize, configSelected);                     // Dibuja las pestañas de CONFIGURATION
     if (configSelected == configbuttons[0]->name)                                     // Si la pestaña actual es "Credenciales"
     {
         for (int b = 0; b < (int)termBars.size(); b++)                                // Recorrerá cada barra de datos de entrada...
@@ -282,7 +290,7 @@ void screenConfigDraw(bool &inputEmpty,                 // Estas variables sirve
             inputfunc("frontend", pathBars[b], 0, "allchars", mediumFontSize);        // Además del contenido que tiene
         }
     }
-
+    saveConfigPtr->status = isPressed(saveConfigPtr);                                 // Se actualiza el estado del botón cada frame para detectar hover correctamente
     PrettyDrawRectangle(saveConfigPtr);                                               // Dibuja al final el botón de guardar la configuración
     DrawTextEx(fontTtf, saveConfigPtr->name.data(),                                   // Y dibuja el nombre de ese botón también
                (Vector2){saveConfigPtr->xloc + (float)centertext(saveConfigPtr->name, saveConfigPtr->xsize, mediumFontSize),
@@ -310,7 +318,8 @@ void screenConfigDraw(bool &inputEmpty,                 // Estas variables sirve
         else if (statusCodeUpdating == 10)  errorMessage = "Error en el nombre de la columna que almacena el nombre de los partidos";
         else if (statusCodeUpdating == 11)  errorMessage = "Error en el nombre de la opcion a votar nulo";
         else if (statusCodeUpdating == 12)  errorMessage = "Error en la ruta de la fuente de la letra del programa";
-        else if (statusCodeUpdating == 13)  errorMessage = "Error en la ruta de la fuente de la letra para el PDF";
+        else if (statusCodeUpdating == 13)  errorMessage = "Error en la ruta de la fuente de la letra monoespaciada";
+        else if (statusCodeUpdating == 14)  errorMessage = "Error en la ruta de la fuente de la letra para el PDF";
         else if (statusCodeUpdating == 20)  errorMessage = "Error desconocido";
         else if (statusCodeUpdating == 127) errorMessage = "Error | La IP del servidor no existe";
         else if (statusCodeConfig == 1)     errorMessage = "Error | No se encontro el archivo de configuracion";

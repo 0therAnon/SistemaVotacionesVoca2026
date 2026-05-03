@@ -25,8 +25,8 @@ class button : public nxyxys {                // Declaración de la clase button
     std::string selfquery = "";               // Se declara que button tendrá una propiedad llamada selfquery, esta propiedad sirve para almacenar queries para enviar a la base de datos por sí mismos
     std::string outLog    = "";               // outLog es el registro de las respuestas que le haya enviado la base de datos, se usa en el panel de administracion, para más informacion leer logfunction en ui/drawing.cpp
     std::string oType     = "button";         // Se declara de que el tipo de objeto es "button", esto sirve para identificar el tipo de objeto actual
-    Color highColor   = {239, 184, 16, 255};  // Color predeterminado que recibe cuando resalta       |   VOCADORADO
-    Color normalColor = {0,  200, 100, 255};  // Color predeterminado que recibe en su estado normal  |   VOCAVERDE
+    Color highColor   = {220, 200, 160, 255};  // Beige cálido al presionar
+    Color normalColor = {245, 235, 210, 255};  // Beige pastel en reposo
 };
 
 class inputBar : public nxyxys {              // Declaración de la clase inputBar, es la encargada de las propiedades de las barras de entrada que permiten la escritura de datos
@@ -46,8 +46,8 @@ class sqlobject : public nxyxys {             // Declaración de la clase sqlobj
     std::string type;                         // Declara el tipo de objeto en caso de que tenga tipo
     int id;                                   // Declara el identificador del objeto en caso de que tenga que necesitar uno
     std::string oType     = "sqlobject";      // Se declara que el tipo de objeto es "sqlobject"
-    Color highColor   = {239, 184, 16, 255};  // Color predeterminado que recibe cuando resalta       |   VOCADORADO
-    Color normalColor = {0,  200, 100, 255};  // Color predeterminado que recibe en su estado normal  |   VOCAVERDE
+    Color highColor   = {220, 200, 160, 255};  // Beige cálido al presionar
+    Color normalColor = {245, 235, 210, 255};  // Beige pastel en reposo
 };
 
 class column : public nxyxys {                // Declaración de la clase column, esta almacena columnas cargadas desde la base de datos, es la que más propiedades tiene

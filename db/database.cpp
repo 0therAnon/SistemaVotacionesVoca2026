@@ -116,8 +116,17 @@ int updateData()              /* Esta función se encarga de cargar información
         }
         fontTtf = LoadFontEx(*pathProgramFont, fontSize, 0, 250);             // En esta línea, se procederá a cargar el nuevo font, con la ruta de pathProgramFont
     }
+    if (!fs::exists(*pathLogsFont)) return 13;                                // Si NO existe la ruta el font monoespacaiado, devuelve código de estado 13 -> "Error en la fuente monoespaciada del programa"
+    else                                                                      // En caso de que sí exista...
+    {
+        if (&fontTtf != nullptr)                                              // Si la dirección en memoria a la que apunta fontTtf no es nula, osea de que sí es un font real el que tenía cargado...
+        {
+            UnloadFont(monoTtf);                                              // Procederá a deshacerse del font que tenía cargado, esto para posteriormente cargarse el nuevo font que se comprobó que existía
+        }
+        monoTtf = LoadFontEx(*pathLogsFont, fontSize, 0, 250);                // En esta línea, se procederá a cargar el nuevo font, con la ruta de pathLogsFont
+    }
 
-    if (!fs::exists(*pathPdfFont)) return 13;                                 // Si NO existe la ruta del font del PDF, devuelve código de estado 13 -> "Error en la ruta de la fuente de la letra del programa"
+    if (!fs::exists(*pathPdfFont)) return 14;                                 // Si NO existe la ruta del font del PDF, devuelve código de estado 14 -> "Error en la ruta de la fuente de la letra del PDF"
 
     // Se procederá a reiniciar la conexión MySQL y validar la autenticación al servidor
 

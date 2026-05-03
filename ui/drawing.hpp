@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+static const Color DORADO_BORDE = {212, 175, 55, 255};  // Dorado para los bordes de todos los botones
 // ── Forward declarations ──────────────────────────────────────────────────────
 int centertext(std::string message, double width, double fontsize);
 std::string keepLastNLines(const std::string& text, int n = 1000);
@@ -11,12 +12,35 @@ std::string keepLastNLines(const std::string& text, int n = 1000);
 template<typename T>
 inline void PrettyDrawRectangle(T obj)              // Esta función se encarga de recibir un objeto y dibujarlo con bordes redondos, además de líneas redondas
 {
-    DrawRectangleRounded({(float)obj->xloc, (float)obj->yloc,           // Dibuja el objeto según sus propiedades xloc, yloc, xsize y ysize con bordes redondos
-                          (float)obj->xsize, (float)obj->ysize},
-                         0.2f, 0, obj->status > 1 ? obj->highColor : obj->normalColor);       // Lo rellena con un color dependiendo de su estado, si el objeto tiene un estado mayor a cero, lo rellena con highColor, sino con normalColor
-    DrawRectangleRoundedLinesEx({(float)obj->xloc, (float)obj->yloc,    // Dibuja las líneas del borde del objeto según sus propiedades xloc, yloc, xsize y ysize con bordes redondos
-                                 (float)obj->xsize, (float)obj->ysize},
-                                0.2f, 0, 1.0f, Fade(BLACK, 0.3f));
+    // Efecto de presión: cuando status es 3 (presionado con cursor encima) o 4 (clic en este instante),
+    // el botón se desplaza 3 pixeles hacia abajo y se encoge, simulando que fue físicamente hundido
+    float pressOffset = (obj->status == 3 || obj->status == 4) ? 3.0f : 0.0f;
+    float sizeReduce  = (obj->status == 3 || obj->status == 4) ? 3.0f : 0.0f;
+
+    // Efecto hover: cuando status es 1 (cursor encima sin clic), el botón crece 2 pixeles
+    // en todas las direcciones para avisarle al usuario que puede presionarlo
+    float hoverExpand = (obj->status == 1) ? 2.0f : 0.0f;
+
+    // Se recalculan las coordenadas aplicando los efectos anteriores
+    float rx = obj->xloc  - hoverExpand;
+    float ry = obj->yloc  - hoverExpand + pressOffset;
+    float rw = obj->xsize + hoverExpand * 2 - sizeReduce;
+    float rh = obj->ysize + hoverExpand * 2 - sizeReduce;
+
+    // Sombra suave debajo del botón, desaparece al presionar para reforzar el efecto de hundimiento
+    if (obj->status != 3 && obj->status != 4)
+        DrawRectangleRounded({rx + 3, ry + 4, rw, rh}, 0.4f, 0, Fade(BLACK, 0.25f));
+
+    // Cuerpo del botón con bordes en forma de píldora (0.5f)
+    // Si status > 1 usa highColor (beige cálido), sino usa normalColor (beige pastel)
+    DrawRectangleRounded({rx, ry, rw, rh},
+                         0.4f, 0, obj->status > 1 ? obj->highColor : obj->normalColor);
+
+    // Borde dorado: más grueso en hover, más fino al presionar, grosor estándar en reposo
+    float borderThick = (obj->status == 1)                     ? 5.0f :   // Hover: 6px para feedback visual claro
+                        (obj->status == 3 || obj->status == 4) ? 6.5f :   // Presionado: 2px, el botón se hundió
+                                                                  3.5f;   // Reposo: 5.5px, borde dorado bien visible
+    DrawRectangleRoundedLinesEx({rx, ry, rw, rh}, 0.4f, 0, borderThick, DORADO_BORDE);
 }
 
 // ── drawSelected ──────────────────────────────────────────────────────────────
@@ -35,16 +59,16 @@ inline void drawSelected(V butVector,               // Esta función se encarga 
         {
             DrawRectangleRounded({(float)butVector[i]->xloc, (float)butVector[i]->yloc,                             // Dibuja el botón con bordes redondos
                                   (float)butVector[i]->xsize, (float)butVector[i]->ysize},
-                                 0.2f, 0, butVector[i]->highColor);
+                                 0.5f, 0, butVector[i]->highColor);
             DrawRectangleRoundedLinesEx({(float)butVector[i]->xloc, (float)butVector[i]->yloc,                      // Dibuja las líneas del borde del botón con bordes redondos
                                          (float)butVector[i]->xsize, (float)butVector[i]->ysize},
-                                        0.2f, 0, 1.0f, Fade(BLACK, 0.3f));
+                                        0.5f, 0, 5.5f, DORADO_BORDE);
         }
         float width = (butVector[i]->xloc + butVector[i]->xsize * 0.5f) * 2.0f;                 // Se calcula el ancho del botón, esto se usará para luego llamar a centertext() para centrar el nombre en el botón
         DrawTextEx(fontTtf, butVector[i]->name.data(),                                          // Se dibuja el nombre del botón
                    (Vector2){(float)centertext(butVector[i]->name, width, fontsize),
                               (float)((butVector[i]->yloc + butVector[i]->ysize + butVector[i]->yloc) / 2.0 - fontsize / 2.0)},
-                   fontsize, 2, BLACK);
+                   fontsize, 0, BLACK);
     }
 }
 

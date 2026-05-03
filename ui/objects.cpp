@@ -33,6 +33,12 @@ int objectCreation()
     adminPanel[2] = screenWidth;
     adminPanel[3] = screenHeight * 0.9;
 
+    // Panel de configuración con posición independiente del panel de administración
+    configPanel[0] = 0.0;
+    configPanel[1] = screenHeight * 0.13;  // Más arriba que adminPanel, se puede ajustar independientemente
+    configPanel[2] = screenWidth;
+    configPanel[3] = screenHeight * 0.9;
+
     /* A continuación, se iniciará la creación de los objetos, pero hay que primero entender esto:
        Siempre se le tiene que asignar un tipo auto a la hora de crear el objeto, y después de escribir auto, se le pasa como argumento el nombre del objeto
        Además, los objetos se deben de crear con un puntero, los punteros se crean por medio de std::make_unique y se le pasa de argumento el tipo de objeto que se desea crear, por ejemplo, si quiero crear un botón, iniciaría su creación así:
@@ -86,13 +92,13 @@ int objectCreation()
     {
         auto btn = std::make_unique<button>();                      // Declaro a btn, el puntero temporal para cada botón
         btn->name        = butnames[i];                             // Declaro que el nombre de btn, será según el índice en el bucle actual pero usandolo para acceder a un índice en butnames, por ejemplo, si i vale 0, el nombre será "Consultar"
-        btn->xloc        = adminPanel[2] / 7.22 * i + (7.22 * i);   // Declaro la ubicación en X (ubicación en el ancho de la pantalla), esto debe de cambiar según el índice en el bucle, así declaro a todos en diferentes posiciones
-        btn->yloc        = adminPanel[1] + screenHeight * 0.005;    // Declaro la posición en el eje Y (altura)
-        btn->xsize       = adminPanel[2] / 7.22;                    // Declaro el ancho del botón
+        btn->xloc        = 10+i + (adminPanel[2] / 7.34) * i + (10 * i);   // Declaro la ubicación en X (ubicación en el ancho de la pantalla)
+        btn->yloc        = screenHeight * 0.08;                     // Declaro la posición en el eje Y (altura)
+        btn->xsize       = screenWidth / 7.25;                      // Declaro el tamaño del ancho del botón
         btn->ysize       = adminPanel[3] * 0.05;                    // Declaro el tamaño de la altura del botón
         btn->outLog      = "";                                      // Esta variable almacenará los resultados de las queries según el botón en el panel de administracion, para más información revisar la función logfunction() en ui/drawing.cpp
         btn->status      = 0;                                       // Se declara el estado del botón, el cual por defecto es 0 (inactivo)
-        btn->highColor   = VOCADORADOSUAVE;                         // Se declara el color del botón cuando tenga que ser resaltado
+        btn->highColor   = VOCADORADO;                              // Se declara el color del botón cuando tenga que ser resaltado
         btn->normalColor = VOCAAMARILLOSUAVE;                       // Se declara el color del botón cuando no debe ser resaltado
         adminButtons.push_back(btn.get());                          // Se introduce el botón al vector adminButtons, pero solo el puntero del botón
         adminObj.push_back(std::move(btn));                         // Ahora, el botón se introduce a adminObj, y ahora adminObj tiene su propiedad
@@ -104,13 +110,13 @@ int objectCreation()
     {
         auto btn = std::make_unique<button>();
         btn->name        = confignames[i];
-        btn->xloc        = adminPanel[2] / 7.22 * (i + 2) + (7.22 * (i + 2));
-        btn->yloc        = adminPanel[1] + screenHeight * 0.005;
-        btn->xsize       = adminPanel[2] / 7.22;
-        btn->ysize       = adminPanel[3] * 0.05;
+        btn->xloc        = configPanel[2] / 7.22 * (i + 2) + (7.22 * (i + 2));    // Usa configPanel para posicionarse independientemente del panel de administración
+        btn->yloc        = screenHeight * 0.08;
+        btn->xsize       = configPanel[2] / 7.22;
+        btn->ysize       = configPanel[3] * 0.05;
         btn->outLog      = "";
         btn->status      = 0;
-        btn->highColor   = VOCADORADOSUAVE;                         // Se declara el color del botón cuando tenga que ser resaltado
+        btn->highColor   = VOCADORADO;                              // Se declara el color del botón cuando tenga que ser resaltado
         btn->normalColor = VOCAAMARILLOSUAVE;                       // Se declara el color del botón cuando no debe ser resaltado
         configbuttons.push_back(btn.get());
         adminObj.push_back(std::move(btn));
@@ -123,6 +129,8 @@ int objectCreation()
     opcionAct->yloc   = 0;                          // Declaro su ubiación en el alto de la pantalla (es cero, ya que se declarará más tarde en la pestaña "Actualizar", para más informacion, revisar screens/screen_adminmenu.cpp)
     opcionAct->xsize  = 0;                          // Declaro su ancho (es cero, ya que se declarará después)
     opcionAct->ysize  = adminPanel[3] * 0.05;       // Declaro la altura del botón
+    opcionAct->normalColor = WHITE;                 // Fondo blanco en reposo para distinguirlo visualmente de los demás botones
+    opcionAct->highColor   = {245, 235, 210, 255};  // Beige pastel al tener hover o estar activo
     opcionActPtr = opcionAct.get();                 // opcionActPtr es el puntero que apuntará al puntero original del botón
     adminObj.push_back(std::move(opcionAct));       // Se introduce el botón a adminObj, y ahora adminObj tiene su propiedad
 
@@ -184,13 +192,25 @@ int objectCreation()
     regresarPtr = regresar.get();
     adminObj.push_back(std::move(regresar));
 
+
+    // cambiarFrontend button
+    auto cambiarFrontend = std::make_unique<button>();
+    cambiarFrontend->name      = "Claro";
+    cambiarFrontend->xloc      = screenWidth* 0.8;
+    cambiarFrontend->yloc      = screenHeight * 0.01;
+    cambiarFrontend->xsize     = screenWidth * 0.01;
+    cambiarFrontend->ysize     = screenWidth * 0.01;
+    cambiarFrontend->status    = 0;
+    cambiarFrontendPtr = cambiarFrontend.get();
+    adminObj.push_back(std::move(cambiarFrontend));
+
     // exitAdmin button
     auto exitAdmin = std::make_unique<button>();
     exitAdmin->name   = "Salir";
-    exitAdmin->xloc   = screenWidth * 0.02;
-    exitAdmin->yloc   = screenHeight * 0.02;
-    exitAdmin->xsize  = screenWidth * 0.02;
-    exitAdmin->ysize  = screenWidth * 0.02;
+    exitAdmin->xloc   = screenWidth * 0.01;
+    exitAdmin->yloc   = screenHeight * 0.01;
+    exitAdmin->xsize  = screenWidth * 0.01;
+    exitAdmin->ysize  = screenWidth * 0.01;
     exitAdmin->status = 0;
     exitAdminPtr = exitAdmin.get();
     adminObj.push_back(std::move(exitAdmin));
@@ -198,10 +218,10 @@ int objectCreation()
     // enterConfig button
     auto enterConfig = std::make_unique<button>();
     enterConfig->name   = "Configuracion";
-    enterConfig->xloc   = screenWidth - (screenWidth * 0.02 * 2);
-    enterConfig->yloc   = screenHeight * 0.02;
-    enterConfig->xsize  = screenWidth * 0.02;
-    enterConfig->ysize  = screenWidth * 0.02;
+    enterConfig->xloc   = screenWidth - (screenWidth * 0.01 * 2);
+    enterConfig->yloc   = screenHeight * 0.01;
+    enterConfig->xsize  = screenWidth * 0.01;
+    enterConfig->ysize  = screenWidth * 0.01;
     enterConfig->status = 0;
     enterConfigPtr = enterConfig.get();
     adminObj.push_back(std::move(enterConfig));
@@ -209,8 +229,8 @@ int objectCreation()
     // refresh button
     auto refresh = std::make_unique<button>();
     refresh->name   = "Refrescar";
-    refresh->xloc   = screenWidth - (screenWidth * 0.02);
-    refresh->yloc   = screenHeight * 0.96;
+    refresh->xloc   = screenWidth  *0.92;
+    refresh->yloc   = screenHeight * 0.92;
     refresh->xsize  = screenWidth * 0.02;
     refresh->ysize  = screenWidth * 0.02;
     refresh->status = 0;
@@ -273,7 +293,7 @@ int objectCreation()
         auto credBar = std::make_unique<inputBar>();
         credBar->name    = nameTermCred[b];
         credBar->xloc    = (screenWidth * 0.15) + ((credBar->name.length() * littleFontSize) / 2) + (screenWidth * 0.022);
-        credBar->yloc    = screenHeight * 0.17 + ((screenHeight * 0.12) * b);
+        credBar->yloc    = screenHeight * 0.22 + ((screenHeight * 0.09) * b);
         credBar->xsize   = littleFontSize * 30;
         credBar->ysize   = littleFontSize * 2;
         credBar->status  = 0;
@@ -297,7 +317,7 @@ int objectCreation()
         auto extraBar = std::make_unique<inputBar>();
         extraBar->name    = nameExtra[b];
         extraBar->xloc    = (screenWidth * 0.15) + ((extraBar->name.length() * littleFontSize) / 2) + (screenWidth * 0.022);
-        extraBar->yloc    = screenHeight * 0.17 + ((screenHeight * 0.12) * b);
+        extraBar->yloc    = screenHeight * 0.22 + ((screenHeight * 0.09) * b);
         extraBar->xsize   = littleFontSize * 30;
         extraBar->ysize   = littleFontSize * 2;
         extraBar->status  = 0;
@@ -309,14 +329,15 @@ int objectCreation()
 
     // Barras de configuracion "Paths"
     std::string namePaths[] = {"Path del font del programa:",
+                               "Path del font mono del programa:",
                                "Path del font del informe PDF:",
                                "Nombre del PDF de salida:"};
-    for (int b = 0; b < 3; b++)
+    for (int b = 0; b < 4; b++)
     {
         auto pathBar = std::make_unique<inputBar>();
         pathBar->name    = namePaths[b];
         pathBar->xloc    = (screenWidth * 0.15) + ((pathBar->name.length() * mediumFontSize) / 2) + (screenWidth * 0.022);
-        pathBar->yloc    = screenHeight * 0.17 + ((screenHeight * 0.17) * b);
+        pathBar->yloc    = screenHeight * 0.22 + ((screenHeight * 0.12) * b);
         pathBar->xsize   = mediumFontSize * 30;
         pathBar->ysize   = mediumFontSize * 2;
         pathBar->status  = 0;
@@ -330,7 +351,7 @@ int objectCreation()
     auto admPasswordBar = std::make_unique<inputBar>();
     admPasswordBar->name    = "Contraseña del panel de administracion:";
     admPasswordBar->xloc    = (screenWidth * 0.15) + ((admPasswordBar->name.length() * littleFontSize) / 2) + (screenWidth * 0.022);
-    admPasswordBar->yloc    = screenHeight * 0.17 + ((screenHeight * 0.12) * (int)termBars.size());
+    admPasswordBar->yloc    = screenHeight * 0.22 + ((screenHeight * 0.09) * (int)termBars.size());
     admPasswordBar->xsize   = termBars[0]->xsize / 2;
     admPasswordBar->ysize   = termBars[0]->ysize;
     admPasswordBar->status  = 0;
@@ -343,7 +364,7 @@ int objectCreation()
     auto labNameBar = std::make_unique<inputBar>();
     labNameBar->name    = "Nombre del laboratorio actual:";
     labNameBar->xloc    = (screenWidth * 0.15) + ((labNameBar->name.length() * littleFontSize) / 2) + (screenWidth * 0.022);
-    labNameBar->yloc    = screenHeight * 0.17 + ((screenHeight * 0.12) *( (int)termBars.size()+1));
+    labNameBar->yloc    = screenHeight * 0.22 + ((screenHeight * 0.09) *( (int)termBars.size()+1));
     labNameBar->xsize   = termBars[0]->xsize / 2;
     labNameBar->ysize   = termBars[0]->ysize;
     labNameBar->status  = 0;
@@ -402,9 +423,6 @@ int objectCreation()
     opcSelectedPtr = opcSelected.get();
     adminObj.push_back(std::move(opcSelected));
 
-    adminSelected  = butnames[0];             // Define la pestaña seleccionada en el panel de administracion como "Consultar" de manera predeterminada, así cuando el administrador entre, esta será la pestaña seleccionada por defecto
-    configSelected = "Credenciales";          // Define la pestaña seleccionada en el panel de configuración como "Credenciales" de manera predeterminada, así cuando el administrador entre esta será la pestaña seleccionada por defecto
-
     if (statusCodeUpdating == 0)              // Si la función updateData() se ejecutó con exito (esta función se encarga de actualizar los datos y comprobar que todo esté bien), entonces se crearán los objetos relacionados a la base de datos
     {
         partidosVec.reserve(quanpartidos);
@@ -418,17 +436,25 @@ int objectCreation()
             auto table = std::make_unique<sqlobject>();
             table->name        = nametables[i];
             table->xloc        = (screenWidth * 0.12) + (screenWidth * 0.1 * i) + (screenWidth * 0.02 * i);
-            table->yloc        = screenHeight * 0.17;
+            table->yloc        = screenHeight * 0.16;
             table->xsize       = screenWidth * 0.1;
             table->ysize       = screenHeight * 0.05;
             table->status      = 0;
-            table->normalColor = VOCAVERDESUAVE;
-            table->highColor   = VOCAVERDE;
+            table->normalColor = VOCAVERDE;
+            table->highColor   = VOCADORADO;
             tablesVec.push_back(table.get());
             adminObj.push_back(std::move(table));
         }
 
-        tableSelected = tablesVec[0]->name;
+        if (tableSelected == "") tableSelected = tablesVec[0]->name;
+        if (adminSelected == "") adminSelected  = butnames[0];             // Define la pestaña seleccionada en el panel de administracion como "Consultar" de manera predeterminada
+        if (configSelected == "") configSelected = confignames[0];          // Define la pestaña seleccionada en el panel de configuración como "Credenciales" de manera predeterminada
+
+
+        adminButtons[0]->selfquery = "SELECT * FROM "s + tableSelected + " WHERE ";   // Se resetea la query de la pestaña "Consultar"
+        adminButtons[1]->selfquery = "INSERT INTO "s  + tableSelected + " (";         // Se resetea la query de la pestaña "Agregar"
+        adminButtons[2]->selfquery = "UPDATE "s       + tableSelected + " SET ";      // Se resetea la query de la pestaña "Actualizar"
+        adminButtons[3]->selfquery = "DELETE FROM "s  + tableSelected + " WHERE ";    // Se resetea la query de la pestaña "Borrar"
 
         /* Columnas | La creación de las columnas es la más compleja, esta, necesita el tipo de dato que almacena la columna, el tamaño máximo que admite como dato, y también este objeto tiene un ID para identificarlo de otras columnas con
            el mismo nombre, todos estos datos se cargan haciendo una query a la base de datos con el uso del método DESC propio de SQL, lo que hace DESC es mostrar toda la información de las columnas de una tabla mas o menos de esta manera:

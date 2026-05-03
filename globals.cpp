@@ -30,7 +30,8 @@ std::vector<char*> configurations = {
     strdup("nameTablePartidos="), strdup("nameColumnVotoNombre="),
     strdup("nameColumnVotosNombre="), strdup("nameColumnPartidosNombre="),
     strdup("nameColumnNuloPartido="), strdup("pathProgramFont="),
-    strdup("pathPdfFont="), strdup("informeName=")
+    strdup("pathLogsFont="), strdup("pathPdfFont="),
+    strdup("informeName=")
 };
 
 // Todos estos son punteros que apuntan a cierto índice del vector configurations
@@ -50,8 +51,9 @@ char** nameTableEstudiantes     = &configurations[7];   // como nombres de colum
 char** nameTablePartidos        = &configurations[8];   // la base de datos en caso de usar una distinta
 
 char** pathProgramFont          = &configurations[13];  // Estos valores son rutas a los fonts
-char** pathPdfFont              = &configurations[14];  // necesarios para el programa y el PDF de informe
-char** informeName              = &configurations[15];  // como también la definición del nombre de salida del PDF
+char** pathLogsFont              = &configurations[14];  // que el sistema necesita que son
+char** pathPdfFont              = &configurations[15];  // necesarios para el programa y el PDF de informe
+char** informeName              = &configurations[16];  // como también la definición del nombre de salida del PDF
 
 // ── MySQL ─────────────────────────────────────────────────────────────────────
 MYSQL_RES* res  = nullptr;    // Variable que almacena un puntero a la respuesta de las queries a la base de datos MySQL
@@ -62,12 +64,13 @@ MYSQL*     conn = nullptr;    // Variable que almacenará un puntero a la conexi
 // ── Colors ────────────────────────────────────────────────────────────────────
 // Los valores de los colores se definen en RGB y Alpha (RGBA) | Alpha es la transparencia del color, si Alpha es 0, es transparente, si es 255, es totalmente sólido
 // Por ejemplo, el VOCAVERDE tiene un valor de ROJO = 0
-Color VOCAVERDE         = {0,   200, 100, 255};
-Color VOCAVERDESUAVE    = {153, 255, 153, 255};
-Color VOCAAMARILLO      = {255, 255, 0,   255};
-Color VOCAAMARILLOSUAVE = {255, 255, 204, 255};
-Color VOCADORADO        = {239, 184, 16,  255};
-Color VOCADORADOSUAVE   = {255, 255, 132, 255};
+Color VOCAVERDE         = {245, 235, 210, 255};  // Beige pastel (botón normal)
+Color VOCAVERDESUAVE    = {250, 244, 228, 255};  // Beige muy suave (tablas normal)
+Color VOCAAMARILLO      = {220, 200, 160, 255};  // Beige más cálido (hover)
+Color VOCAAMARILLOSUAVE = {250, 244, 228, 255};  // Beige suave
+Color VOCADORADO        = {220, 200, 160, 255};  // Beige cálido (seleccionado)
+Color VOCADORADOSUAVE   = {245, 235, 210, 255};  // Beige pastel
+Color COLORTEXTO        = BLACK;
 
 // ── File / query state ────────────────────────────────────────────────────────
 std::ofstream configFile;   // Variable que servirá para almacenar el contenido del archivo de configuración
@@ -90,9 +93,11 @@ std::string oldbar            = "";     // Variable que almacena la última barr
 
 // ── Raylib / UI state ─────────────────────────────────────────────────────────
 Font   fontTtf;             // Guardará el font del programa para funciones de la parte gráfica
+Font   monoTtf;             // Guardará el font del programa para funciones de la parte gráfica
 float explorarSquare[4];    // Lista que guardará ubicacion en el eje x, ubicacion en el eje y, tamaño de ancho y tamaño de alto, para un rectángulo que se usará de fondo en la pestaña "Explorar"
 float mediumFontSize;       // Tamaño del font del programa mediano
 float littleFontSize;       // Tamaño del font del programa pequeño
+float configPanel[4];       // Lista separada para el panel de configuración, permite ajustar su posición independientemente del panel de administración
 float adminPanel[4];        // Lista que guardará ubicacion en el eje x, ubicacion en el eje y, tamaño de ancho y tamaño de alto, para un rectángulo que se usará de fondo para todo el panel de administración
 float outSquare[4];         // Lista que guardará ubicacion en el eje x, ubicacion en el eje y, tamaño de ancho y tamaño de alto, para un rectángulo que se usará de fondo para el resultado de las pestañas en el panel de administración
 float screenHeight;         // Valor del tamaño de alto de la ventana
@@ -104,6 +109,7 @@ bool pdfRandomError     = false;  // Verifica si hubo un error en la creación d
 bool pdfFontError       = false;  // Verifica si hubo un error con la carga del font al PDF
 bool tabRestart         = false;  // Sirve como activador en las funciones de moverse entre barras de entrada con la tecla TAB en el panel de administración
 bool nullOption         = false;  // Verifica si existe un partido NULO en las tablas existentes de la base de datos MySQL
+bool darkMode           = false;  // Verifica si el modo de usuario del sistema es modo oscuro, en caso de que sea falso significa que es modo claro, el modo claro es el predeterminado
 bool pdfError           = false;  // Verifica si hubo un error con la creación del PDF
 bool showBeam           = true;   // Verifica si la línea de la barra de entrada tiene que mostrarse o no, para dar el efecto de que la línea está parpaedeando
 
@@ -156,6 +162,7 @@ inputBar*  terminalBarPtr       = nullptr;
 inputBar*  labNameBarPtr        = nullptr;
 inputBar*  cedulaBarPtr         = nullptr;
 inputBar*  actBarPtr            = nullptr;
+button*    cambiarFrontendPtr   = nullptr;
 button*    enterConfigPtr       = nullptr;
 button*    saveConfigPtr        = nullptr;
 button*    continuarPtr         = nullptr;

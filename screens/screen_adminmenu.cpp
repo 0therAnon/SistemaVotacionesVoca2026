@@ -37,11 +37,15 @@ void screenAdminmenuUpdate(Screen &currentScreen,
     if (IsGestureDetected(GESTURE_TAP))                             // Si se llega a presionar la pantalla, se ejecutará el siguiente bloque de código
     {
 
-        exitAdminPtr->status   = isPressed(exitAdminPtr);           // Se empieza a verificar el estado
-        enterConfigPtr->status = isPressed(enterConfigPtr);         // de los botones de salir, actualizar datos
-        refreshPtr->status     = isPressed(refreshPtr);             // o ingresar a la pantalla CONFIGURATION
+        exitAdminPtr->status        = isPressed(exitAdminPtr);           // Se empieza a verificar el estado
+        enterConfigPtr->status      = isPressed(enterConfigPtr);         // de los botones de salir, actualizar datos
+        refreshPtr->status          = isPressed(refreshPtr);             // o ingresar a la pantalla CONFIGURATION
+        cambiarFrontendPtr->status  = isPressed(cambiarFrontendPtr);     // o cambiar el modo del frontend
 
-        if (exitAdminPtr->status == 4 || enterConfigPtr->status == 4 || refreshPtr->status == 4)          // Si alguno de esos tres botones anteriores llega a recibir el estado 3 (fue presionado) se ejecutará el siguiente bloque de código
+        if (exitAdminPtr->status == 4 ||
+            enterConfigPtr->status == 4 ||
+            refreshPtr->status == 4 ||
+            cambiarFrontendPtr->status == 4)          // Si alguno de esos cuatro botones anteriores llega a recibir el estado 4 (fue presionado) se ejecutará el siguiente bloque de código
         {
             restartTerminal = true;                                                                       // Se activa el reinicio de las credenciales de la pestaña "Terminal"
             columnSelected  = columnsVec[0]->id;                                                          // La columna seleccionada ahora será la primera en el vector columnsVec
@@ -49,25 +53,31 @@ void screenAdminmenuUpdate(Screen &currentScreen,
 
             for (int z = 0; z < (int)adminButtons.size(); z++) {adminButtons[z]->outLog = "";}            // Este bucle recorre el atributo outLog de cada pestaña, para que en caso de volver a ingresar al panel, se encuentre limpio
 
-            if (exitAdminPtr->status == 4)                          // Si el botón presionado fue el de salir del panel de administración...
-            {
-                currentScreen = MAINMENU;                           // La pantalla actual ahora será MAINMENU
-                cedulaBarPtr->status = 4;                           // El estado de la barra de entrada cedulaBar, pasará a estado 3, para automáticamente recibir datos de entrada
-                return;                                             // Retorno de la función
-            }
-            else if (refreshPtr->status == 4)
-            {
-                updateData();                                       // En caso de que el botón presionado fue el de actualizar los datos, procederá a ejecutar updateData()
-                objectCreation();                                   // Como se actualizaron los datos, existe la posibilidad de que botones, tablas o columnas ya no existan, entonces se vuelven a crear los objetos
-                return;                                             // Retorno de la función
-            }
-            else                                                    // Si el botón presionado no fue ni el de salir ni el de actualizar, entonces significa que fue el de entrar a la configuración, así que procederá a ejecutar lo siguiente
-            {
-                fromAdmin = true;                                   // fromAdmin pasará a true, dando a entender al programa de que se quiso entrar a la pantalla de configuración desde el panel de administración
-                loadConfig();                                       // loadConfig() procederá a cargar los datos que se pudieron cargar del archivo de configuración a las barras de entrada, para no tener que escribir toda la configuración de cero
-                currentScreen = CONFIGURATION;                      // La pantalla actual ahora será CONFIGURATION
-                return;                                             // Retorno de la función
-            }
+                if (exitAdminPtr->status == 4)                          // Si el botón presionado fue el de salir del panel de administración...
+                {
+                    currentScreen = MAINMENU;                           // La pantalla actual ahora será MAINMENU
+                    cedulaBarPtr->status = 4;                           // El estado de la barra de entrada cedulaBar, pasará a estado 3, para automáticamente recibir datos de entrada
+                    return;                                             // Retorno de la función
+                }
+                else if (refreshPtr->status == 4)
+                {
+                    updateData();                                       // En caso de que el botón presionado fue el de actualizar los datos, procederá a ejecutar updateData()
+                    objectCreation();                                   // Como se actualizaron los datos, existe la posibilidad de que botones, tablas o columnas ya no existan, entonces se vuelven a crear los objetos
+                    return;                                             // Retorno de la función
+                }
+                else if (cambiarFrontendPtr->status == 4)
+                {
+                    darkMode = darkMode ? false : true;                 // Cambia el valor de darkMode, si era verdadero lo cambia a falos, y viceversa
+                    COLORTEXTO = darkMode ? WHITE : BLACK;              // Cambia el color del texto de los textos que deben de ser cambiados para su correcta visualización
+                    return;                                             // Retorno de la función
+                }
+                else                                                    // Si el botón presionado no fue ni el de salir ni el de actualizar, entonces significa que fue el de entrar a la configuración, así que procederá a ejecutar lo siguiente
+                {
+                    fromAdmin = true;                                   // fromAdmin pasará a true, dando a entender al programa de que se quiso entrar a la pantalla de configuración desde el panel de administración
+                    loadConfig();                                       // loadConfig() procederá a cargar los datos que se pudieron cargar del archivo de configuración a las barras de entrada, para no tener que escribir toda la configuración
+                    currentScreen = CONFIGURATION;                      // La pantalla actual ahora será CONFIGURATION
+                    return;                                             // Retorno de la función
+                }
         }
 
         for (int i = 0; i < (int)adminButtons.size(); i++)          // Si el programa llega hasta esta línea, es por que no se tocó ningun botón, entonces procederá a recorrer las pestañas
@@ -232,6 +242,7 @@ void screenAdminmenuUpdate(Screen &currentScreen,
                         opc->type   = columnsVec[co]->type;                                             // Su tipo de dato será el mismo que el de la columna correspondiente
                         opc->maxlen = std::stoi(columnsVec[co]->maxlen);                                // Su tamaño máximo de datos de entrada será el mismo que el de la columna correspondiente
                         opc->id     = columnsVec[co]->id;                                               // Su id será el mismo que el de la columna correspondiente
+                        opc->normalColor = WHITE;                                                       // Fondo blanco en reposo para que sea consistente con el botón principal del desplegable
                         opcionesAct.push_back(opc.get());                                               // El objeto se empuja a opcionesAct
                         adminObj.push_back(std::move(opc));                                             // Su puntero se almacena en adminObj
                     }
@@ -561,7 +572,7 @@ void screenAdminmenuUpdate(Screen &currentScreen,
                                                     std::stoi(termBars[1]->input), NULL, 0))
                             {
                                 mysql_close(auth); auth = nullptr;                                                // Se cerrará la conexión a la que apuntaba el puntero auth, y declarará a auth como un puntero vacío, para limpiar la conexión
-                                intentosRestantes--;                                                              // Resta los intentosRestantes 
+                                intentosRestantes--;                                                              // Resta los intentosRestantes
                                 invalidCredentials = true;                                                        // Activa a invalidCredentials, para avisar en el frontend que las credenciales son inválidas
                                 break;
                             }
@@ -586,13 +597,24 @@ void screenAdminmenuDraw(bool &invalidCredentials,                              
                          std::string& modeInput,                                                // el modo de entrada de la columna actual
                          std::string &outResultsMode)                                           // y el tipo de modo para la gráfica en "Resultados"
 {
+    exitAdminPtr->status        = isPressed(exitAdminPtr);           // Se empieza a verificar el estado
+    enterConfigPtr->status      = isPressed(enterConfigPtr);         // de los botones de salir, actualizar datos
+    refreshPtr->status          = isPressed(refreshPtr);             // o ingresar a la pantalla CONFIGURATION
+    cambiarFrontendPtr->status  = isPressed(cambiarFrontendPtr);     // o cambiar el modo del frontend
+    // Se actualiza el estado de cada botón no seleccionado cada frame para que PrettyDrawRectangle
+    // detecte el hover y cambie el grosor del borde dorado correctamente
+    for (int i = 0; i < (int)adminButtons.size(); i++)
+        adminButtons[i]->status = isPressed(adminButtons[i]);
+    DrawRectangle(adminPanel[0], adminPanel[1],                     // Dibuja el cuadro del fondo
+              adminPanel[2], adminPanel[3], VOCADORADOSUAVE);
+    DrawLineEx((Vector2){configPanel[0], adminPanel[1]},
+           (Vector2){(configPanel[0]+configPanel[2]), adminPanel[1]},
+            4.0f, DORADO_BORDE);
     drawSelected(adminButtons, littleFontSize, adminSelected);                                  // Empieza a dibujar los botones de las pestañas del panel de administración
-    DrawRectangle(adminPanel[0], adminPanel[1] + terminalBarPtr->ysize - 1,                     // Dibuja el cuadro del fonto
-                  adminPanel[2], adminPanel[3], VOCADORADOSUAVE);
-    DrawTextEx(fontTtf, "Panel de Administracion"s.data(),                                      // Y escribe el título "Panel de Administracion"
-               (Vector2){(float)centertext("Panel de Administracion"s, screenWidth, fontSize),
-                          (float)(screenHeight * 0.05)},
-               fontSize, 2, BLACK);
+    DrawTextEx(fontTtf, "PANEL DE ADMINISTRACIÓN"s.data(),                                      // Y escribe el título "PANEL DE ADMINISTRACIÓN"
+               (Vector2){(float)centertext("PANEL DE ADMINISTRACIÓN"s, screenWidth, fontSize),
+                          (float)(screenHeight * 0.03)},
+               fontSize, 2, COLORTEXTO);
 
     // ── Consultar ──────────────────────────────────────────────────────────────────────────
     if (adminSelected == butnames[0])                                                                         // Si la pestaña actual es "Consultar"
@@ -603,12 +625,14 @@ void screenAdminmenuDraw(bool &invalidCredentials,                              
     // ── Actualizar ─────────────────────────────────────────────────────────────────────────
     else if (adminSelected == butnames[2])                                                                    // Si la pestaña actual es "Actualizar"
     {
+        opcionActPtr->status = isPressed(opcionActPtr);
         oldSelected = drawcolumns(tablesVec, columnsVec, tableSelected, littleFontSize, adminSelected);       // Dibuja las columnas y tablas normalmente y...
         PrettyDrawRectangle(opcionActPtr);                                                                    // Dibuja la opción de la lista desplegable
         if (opcionActPtr->status > 1)                                                                         // Si el estado del botón es mayor a uno, es decir, está recibiendo interacción alguna, entonces...
         {
             for (int counter = 0; counter < (int)opcionesAct.size(); counter++)                               // Recorrerá todo el vector de opciones y...
             {
+                opcionesAct[counter]->status = isPressed(opcionesAct[counter]);                               // Se actualiza el estado de cada opción cada frame para detectar hover correctamente
                 PrettyDrawRectangle(opcionesAct[counter]);                                                    // Dibujará el cuadro de cada opción
                 DrawTextEx(fontTtf, opcionesAct[counter]->name.data(),                                        // Además del nombre de cada opción
                            (Vector2){(float)(opcionActPtr->xloc + littleFontSize),
@@ -646,26 +670,28 @@ void screenAdminmenuDraw(bool &invalidCredentials,                              
     else if (adminSelected == butnames[4])                                                                    // Si la pestaña actual es "Explorar"
     {
         DrawRectangle(explorarSquare[0], explorarSquare[1], explorarSquare[2], explorarSquare[3],             // Dibuja el cuadro de fondo de los datos de "Explorar"
-                      Fade(VOCADORADO, 0.5f));
+                      {45, 45, 48, 255});
         drawSelected(tablesVec, littleFontSize, tableSelected);                                               // Dibuja las tablas
         DrawTextEx(fontTtf, explorarFinalOutput.data(),                                                       // Y dibuja la salida de la información de la tabla actual
                    (Vector2){(float)(screenWidth * 0.13), (float)(explorarSquare[1] * 1.095)},
-                   littleFontSize, 2, BLACK);
+                   littleFontSize, 2, WHITE);
     }
     // ── Resultados ─────────────────────────────────────────────────────────────────────────
     else if (adminSelected == butnames[5])                                                                    // Si la pestaña actual es resultados
     {
         statistics("frontend", outResultsMode, percentages, partidosVec, screenWidth * 0.15, screenHeight * 0.5);               // Dibujará el gráfico
+        resTogglePtr->status = isPressed(resTogglePtr);
         PrettyDrawRectangle(resTogglePtr);                                                                                      // Dibujará el botón encargado de cambiar de porcentajes a cantidades
-        DrawTextEx(fontTtf, resTogglePtr->name.data(),                                                                          // Dibujará el nombre del botón
-                   (Vector2){(float)(resTogglePtr->xloc + littleFontSize / 2),
-                              (float)(resTogglePtr->yloc + littleFontSize / 3)},
-                   littleFontSize, 2, BLACK);
+        DrawTextEx(fontTtf, resTogglePtr->name.data(),                                                                          // Dibujará el nombre del botón centrado dentro de él
+                   (Vector2){resTogglePtr->xloc + (float)centertext(resTogglePtr->name, resTogglePtr->xsize, littleFontSize),
+                              (float)(resTogglePtr->yloc + (resTogglePtr->ysize - littleFontSize) / 2)},
+                   littleFontSize, 2, BLACK);                                                                                   // BLACK porque el botón es beige
+        informePtr->status = isPressed(informePtr);                                           // Se actualiza el estado del botón cada frame para detectar hover correctamente
         PrettyDrawRectangle(informePtr);                                                      // Dibujará el botón para hacer el informe en PDF
-        DrawTextEx(fontTtf, informePtr->name.data(),                                          // Dibujará el nombre del botón del PDF
-                   (Vector2){(float)(informePtr->xloc + (informePtr->xsize * 0.5) - (informePtr->name.length() * littleFontSize) * 0.35),
-                              (float)(informePtr->yloc + (informePtr->ysize * 0.5) - littleFontSize * 0.5)},
-                   littleFontSize, 2, BLACK);
+        DrawTextEx(fontTtf, informePtr->name.data(),                                          // Dibujará el nombre del botón del PDF centrado dentro de él
+                   (Vector2){informePtr->xloc + (float)centertext(informePtr->name, informePtr->xsize, littleFontSize),
+                              (float)(informePtr->yloc + (informePtr->ysize - littleFontSize) / 2)},
+                   littleFontSize, 2, BLACK);                                                 // BLACK porque el botón es beige
         // Verificación de errores de la función informe() relacionados a la creación del PDF
         if (pdfError)            shortmessage("ERROR: Ocurrio un error al crear el PDF", fontSize, pdfError);                     // Si se activa pdfError desde la función informe(), mostrará ese mensaje
         else if (pdfFontError)   shortmessage("ERROR: Ocurrio un error al cargar la fuente de texto", fontSize, pdfFontError);    // Si hubo un error con la fuente de texto, se activa pdfFontError desde la función informe(), y muestra ese mensaje
@@ -700,10 +726,10 @@ void screenAdminmenuDraw(bool &invalidCredentials,                              
             {
                 DrawTextEx(fontTtf, termBars[b]->name.data(),                             // Dibujará el nombre de cada barra
                            (Vector2){(float)(screenWidth * 0.12),
-                                      (float)(termBars[b]->yloc + (termBars[b]->ysize * 0.5) - (mediumFontSize * 0.5))},
-                           mediumFontSize, 0, BLACK);
+                                      (float)(termBars[b]->yloc + (termBars[b]->ysize * 0.5) - (littleFontSize * 0.5))},
+                           littleFontSize, 0, BLACK);
                 PrettyDrawRectangle(termBars[b]);                                         // Y también dibujará la barra misma
-                inputfunc("frontend", termBars[b], 0, "allchars", mediumFontSize);        // Además de dibujar los dtos que se hayan introducido en la barra actual del bucle
+                inputfunc("frontend", termBars[b], 0, "allchars", littleFontSize);        // Además de dibujar los dtos que se hayan introducido en la barra actual del bucle
             }
         }
         else                          // En caso de que se hayan agotado los intentos de autenticación...
@@ -726,4 +752,5 @@ void screenAdminmenuDraw(bool &invalidCredentials,                              
     PrettyDrawRectangle(enterConfigPtr);      // Dibuja el botón para entrar a la configuración del programa
     PrettyDrawRectangle(exitAdminPtr);        // Dibuja el botón para salir del panel de administración
     PrettyDrawRectangle(refreshPtr);          // Dibuja el botón para refrescar los datos cargados desde la base de datos
+    PrettyDrawRectangle(cambiarFrontendPtr);  // Dibuja el botón para cambiar el modo del frontend de claro a oscuro
 }

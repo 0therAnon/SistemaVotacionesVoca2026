@@ -35,7 +35,8 @@ nameTableEstudiantes=Estudiantes\n\
 nameTablePartidos=Partidos\n\
 \n\
 [Paths]\n\
-pathProgramFont=./fonts/GoMonoNerdFont-Regular.ttf\n\
+pathProgramFont=./fonts/Inter_24pt-Regular.ttf\n\
+pathLogsFont=./fonts/GoMonoNerdFont-Regular.ttf\n\
 pathPdfFont=./fonts/LibertinusMono-Regular.ttf\n\
 informeName=Informe VOCA Votaciones 2026.pdf\n\
 ";
@@ -109,7 +110,8 @@ int loadConfig()    // Nombro a la función loadConfig() sin argumentos ya que n
     extraBars[4]->input32 = UTF8ToUTF32(*nameColumnVotosNombre);      /**/              extraBars[4]->input = *nameColumnVotosNombre;
     extraBars[5]->input32 = UTF8ToUTF32(*nameColumnVotoNombre);       /**/              extraBars[5]->input = *nameColumnVotoNombre;
     pathBars[0]->input32 = UTF8ToUTF32(*pathProgramFont);             /**/              pathBars[0]->input = *pathProgramFont;
-    pathBars[1]->input32 = UTF8ToUTF32(*pathPdfFont);                 /**/              pathBars[1]->input = *pathPdfFont;
-    pathBars[2]->input32 = UTF8ToUTF32(*informeName);                 /**/              pathBars[2]->input = *informeName;
+    pathBars[1]->input32 = UTF8ToUTF32(*pathLogsFont);                /**/              pathBars[1]->input = *pathLogsFont;
+    pathBars[2]->input32 = UTF8ToUTF32(*pathPdfFont);                 /**/              pathBars[2]->input = *pathPdfFont;
+    pathBars[3]->input32 = UTF8ToUTF32(*informeName);                 /**/              pathBars[3]->input = *informeName;
     return 0;
 }

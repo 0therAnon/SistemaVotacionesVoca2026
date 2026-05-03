@@ -29,7 +29,8 @@ int main(void)
     mediumFontSize = fontSize   / 1.5;  if ((int)mediumFontSize % 2 != 0) mediumFontSize--;   // mediumFontSize es un font mediano, si el valor es impar, se le resta uno para que sea par
     littleFontSize = fontSize   / 2;                                                          // littleFontSize es un font pequeño
 
-    fontTtf = LoadFontEx("./fonts/GoMonoNerdFont-Regular.ttf", fontSize, 0, 250); // Es la variable que tendrá el font almacenado, busca la ruta del archivo del font a usar, se le pasa el tamaño (fontSize) como argumento
+    fontTtf = LoadFontEx("./fonts/Inter_24pt-Regular.ttf", fontSize, 0, 250); // Es la variable que tendrá el font almacenado, busca la ruta del archivo del font a usar, se le pasa el tamaño (fontSize) como argumento
+    monoTtf = LoadFontEx("./fonts/GoMonoNerdFont-Regular.ttf", fontSize, 0, 250); // Es la variable que tendrá el font almacenado, busca la ruta del archivo del font a usar, se le pasa el tamaño (fontSize) como argumento
 
     // ── Per-loop state ────────────────────────────────────────────────────────
     std::string outResultsMode      = "percentages";   // Verifica si el modo de salida de la pestaña "Resultados" tiene que ser en porcentajes o sino en cantidades
@@ -110,7 +111,10 @@ int main(void)
 
         // ── Frontend (drawing) ────────────────────────────────────────────────
         BeginDrawing();                       // Función que inicia el "dibujado" en el frontend
-        ClearBackground(RAYWHITE);            // Limpia el background y lo "pinta" de color RAYWHITE
+        if (darkMode)                                         // Si el modo oscuro está activo...
+            ClearBackground({45, 45, 48, 255});               // Limpia el background y lo "pinta" de un color oscuro
+        else
+            ClearBackground({250, 244, 228, 255});            // Limpia el background y lo "pinta" de un color claro
         screenWidth  = GetScreenWidth();      // El tamaño de screenWidth es actualizado
         screenHeight = GetScreenHeight();     // El tamaño de screenHeight es actualizado
 

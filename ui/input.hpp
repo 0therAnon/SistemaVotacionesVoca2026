@@ -22,25 +22,24 @@ inline int isPressed(auto& obj)
     float xloc = obj->xloc, yloc = obj->yloc, xsize = obj->xsize, ysize = obj->ysize;
     int laststate = obj->status;
 
-    if (IsGestureDetected(GESTURE_TAP) &&                           // Si el cursor hace clic y
-        GetTouchX() >= xloc && GetTouchX() <= xloc + xsize &&       // Está dentro del ancho del objeto y
-        GetTouchY() >= yloc && GetTouchY() <= yloc + ysize)         // Está dentro del alto del objeto
-        return 4;                                                   // Retornará código de estado 4 | Significa que el objeto recibió un clic
+    // Se usa GetMouseX/Y para PC y GetTouchX/Y para pantallas táctiles
+    // En PC GetTouchX/Y siempre devuelve 0 cuando no hay toque, por eso se necesitan ambos
+    float cursorX = (GetTouchX() > 0 || GetTouchY() > 0) ? GetTouchX() : GetMouseX();   // Si hay toque táctil usa Touch, sino usa Mouse
+    float cursorY = (GetTouchX() > 0 || GetTouchY() > 0) ? GetTouchY() : GetMouseY();   // Lo mismo para el eje Y
 
-    if (IsGestureDetected(GESTURE_TAP) &&                           // Si el cursor hace clic y
-        (GetTouchX() < xloc || GetTouchX() > xloc + xsize ||        // Está fuera del ancho del objeto y
-         GetTouchY() < yloc || GetTouchY() > yloc + ysize))         // Está fuera del alto del objeto
-        return 0;                                                   // Retornará código de estado 0 | Significa que NO se está interactuando de ninguna forma con el objeto
+    bool inside = (cursorX >= xloc && cursorX <= xloc + xsize &&                         // Verifica si el cursor está dentro del ancho del objeto
+                   cursorY >= yloc && cursorY <= yloc + ysize);                          // Y dentro del alto del objeto
 
-    if (!IsGestureDetected(GESTURE_TAP) &&                          // Si el cursor NO hace clic y
-        GetTouchX() >= xloc && GetTouchX() <= xloc + xsize &&       // Está dentro del ancho del objeto y
-        GetTouchY() >= yloc && GetTouchY() <= yloc + ysize)         // Está dentro del alto del objeto
-        return (laststate == 0 || laststate == 1) ? 1 : 3;          // Retornará código de estado 1 SOLO SI no fue presionado anteriormente, en caso contrario, retornará 3
+    if ((IsGestureDetected(GESTURE_TAP) || IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) && inside)   // Si hubo clic (táctil o mouse) dentro del objeto
+        return 4;                                                                                  // Retorna 4: clic en este instante
 
-    if (!IsGestureDetected(GESTURE_TAP) &&                          // Si el cursor NO hace clic y
-        (GetTouchX() < xloc || GetTouchX() > xloc + xsize ||        // Está fuera del ancho del objeto y
-         GetTouchY() < yloc || GetTouchY() > yloc + ysize))         // Está fuera de la altura del objeto
-        return (laststate == 0 || laststate == 1) ? 0 : 2;          // Retornará código de estado 2 SOLO SI fue presionado anteriormente, en caso contrario retornará 0
+    if ((IsGestureDetected(GESTURE_TAP) || IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) && !inside)  // Si hubo clic fuera del objeto
+        return 0;                                                                                  // Retorna 0: sin interacción
+
+    if (inside)                                                                           // Sin clic pero cursor encima
+        return (laststate == 0 || laststate == 1) ? 1 : 3;                               // 1 si nunca fue presionado, 3 si ya fue presionado antes
+
+    return (laststate == 0 || laststate == 1) ? 0 : 2;                                   // Cursor fuera: 0 si nunca presionado, 2 si ya fue presionado
 
     return 0;
 }
@@ -204,20 +203,26 @@ inline std::string inputfunc(std::string mode,                            // Ver
 
     if (mode == "frontend")             // Si el modo es "frontend"...
     {
-        if (bar->name != barAdminTerminalPtr->name) {PrettyDrawRectangle(bar);}             // Si el nombre de la barra NO es la de barAdminTerminalPtr, dibujará a la barra con la función PrettyDrawRectangle()
+        Font fttf;
+        if (bar->name != barAdminTerminalPtr->name) {PrettyDrawRectangle(bar); fttf = fontTtf;}         // Si el nombre de la barra NO es la de barAdminTerminalPtr, dibujará a la barra con la función PrettyDrawRectangle()
+        else fttf = monoTtf;                                                                            // En caso de que sí lo sea, el font será igual a monoTtf, para usar el font con monoespaciado
 
         if (inputmode != "boolean") {                           // Si el modo NO es "boolean"...
-            DrawTextEx(fontTtf, bar->input.c_str(),             // Dibujará el texto introducido en la barra
+            DrawTextEx(fttf, bar->input.c_str(),             // Dibujará el texto introducido en la barra
                        (Vector2){(float)(bar->xloc * 1.04),
                                   (float)(((bar->ysize - fsize) / 2 + bar->yloc) - (bar->ysize * 0.05))},
                        fsize, 0, col);
 
             if (bar->status > 1 && showBeam && inputpos <= (int)bar->input32.size())    // Y buscará donde poner la barra parpadeante, siempre en caso de que showBeam sea verdadero
             {
+                // Se mide el ancho exacto del texto hasta la posición del cursor con MeasureTextEx
+                // para que la barra parpadeante quede exactamente donde corresponde sin correrse
+                std::string textUpToCursor = UTF32ToUTF8(bar->input32.substr(0, inputpos));
+                Vector2 measured = MeasureTextEx(fttf, textUpToCursor.data(), fsize, 0);
                 DrawLine(
-                    (int)((bar->xloc * 1.04) + inputpos * fsize / 2),
+                    (int)((bar->xloc * 1.04) + measured.x),
                     (int)(bar->yloc + ((bar->ysize - fsize) / 4)),
-                    (int)((bar->xloc * 1.04) + inputpos * fsize / 2),
+                    (int)((bar->xloc * 1.04) + measured.x),
                     (int)(bar->yloc + fsize * 1.6),
                     bar->name != barAdminTerminalPtr->name ? BLACK : WHITE);            // En caso de que la barra de datos de entrada sea barAdminTerminalPtr, la barra parpadeante en vez de dibujarse negra, se dibujará blanca
             }

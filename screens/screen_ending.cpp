@@ -32,13 +32,13 @@ void screenEndingDraw(int verifyvote)
         DrawTextEx(fontTtf, "Ya usted ha votado, no puede hacerlo de nuevo",                                                  // Dibuja el mensaje diciendole al estudiante de que ya ha votado
                    (Vector2){(float)centertext("Ya usted ha votado, no puede hacerlo de nuevo", screenWidth, fontSize),
                               (float)(screenHeight * 0.5)},
-                   fontSize, 2, BLACK);
+                   fontSize, 2, COLORTEXTO);
     }
     else                                            // En caso de que verifyvote sea un valor superior a cero, significa que se llegó a la pantalla ENDING después de ejercer el voto, entonces...
     {
-        DrawTextEx(fontTtf, "Muchas gracias por su voto, puede retirarse",                                                    // Dibuja el mensaje diciendole al estudiante de que ya ha votaao
+        DrawTextEx(fontTtf, "Muchas gracias por su voto, puede retirarse",                                                    // Dibuja el mensaje diciendole al estudiante de que ya ha votado
                    (Vector2){(float)centertext("Muchas gracias por su voto, puede retirarse", screenWidth, fontSize),
                               (float)(screenHeight * 0.5)},
-                   fontSize, 2, BLACK);
+                   fontSize, 2, COLORTEXTO);
     }
 }

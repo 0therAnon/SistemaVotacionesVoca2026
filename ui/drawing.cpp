@@ -7,7 +7,7 @@
 int centertext(std::string message, double width, double fontsize)              // Esta función se encarga de centrar texto, de argumentos tiene al mensaje a centrar, el tamaño en pixeles para centrar el texto, y el tamaño del font de la letra
 {
     Vector2 textWidth = MeasureTextEx(fontTtf, message.data(), fontsize, 2);    // MeasureTextEx() sirve para centrar el texto a partir del font, el mensaje, el tamaño del font y el espaciado entre las letras, y esto lo guarda en textWidth
-    return (int)((width - textWidth.x) / 2);                                    // Retorna al eje x guardado en textWidth dividido entre 2, debe ser dividido para operaciones con ese número según donde se llame la función
+    return (int)((width - textWidth.x) / 2);
 }
 
 std::string adjustLimit(const std::string &text, int n = 1000)                  // Sirve para ajustar el máximo de las propiedades outLog de los botones del panel de administración, cortando todo lo anterior a las 1000 líneas más recientes
@@ -53,7 +53,10 @@ int logfunction(std::string selected,                                           
         outSquare[1] = lastColumnMeasures;
         outSquare[2] = screenWidth * 0.76;
         outSquare[3] = screenHeight - lastColumnMeasures - screenHeight * 0.04;
-        DrawRectangle(outSquare[0], outSquare[1], outSquare[2], outSquare[3], BLACK);
+        DrawRectangleRounded({outSquare[0], outSquare[1], outSquare[2], outSquare[3]},
+                             0.02f, 0, BLACK);                                              // Se dibuja el fondo negro del cuadro de resultados con esquinas ligeramente redondeadas
+        DrawRectangleRoundedLinesEx({outSquare[0], outSquare[1], outSquare[2], outSquare[3]},
+                                    0.02f, 0, 3.0f, DORADO_BORDE);                         // Se dibuja el borde dorado alrededor del cuadro de resultados, con el mismo color dorado que usan todos los botones del programa
     }
     else                                                                                            // Si SÍ se encuentra en "Terminal"...
     {                                                                                               // El recuadro usa las coordenadas del componente adminTerminal, que ya tiene su posición fija definida, sin recalcular nada
@@ -139,7 +142,7 @@ int logfunction(std::string selected,                                           
                 log.insert(0, logList[ln]);                                               // Si no ocurre el if, entonces se sigue agregando al inicio de log el primer string de logList (el cual sería el último recibido por que está invertido)
                 countr++;                                                                 // countr va contando la cantidad de inserciones al string log
             }
-            DrawTextEx(fontTtf, log.data(),                                               // Se procede a dibujar el texto encima de outSquare
+            DrawTextEx(monoTtf, log.data(),                                               // Se procede a dibujar el texto encima de outSquare
                        (Vector2){(float)(outSquare[0] + screenWidth * 0.01),
                                   (float)(outSquare[1] + outSquare[3] * 0.05)},
                        littleFontSize, 2, WHITE);
@@ -235,8 +238,12 @@ std::string drawcolumns(std::vector<sqlobject*> &cTables,                   // V
                            (Vector2){(float)(screenWidth * 0.12),
                                       (float)(cVector[number]->yloc + (cVector[number]->ysize * 0.5) - (fsize * 0.5))},
                            fsize, 2, BLACK);
-                PrettyDrawRectangle(cVector[number]);                                           // Dibuja ahora la barra de entrada de la columna actual con sus respectivos colores
-                cVector[number]->status = isPressed(cVector[number]);                           // Se verifica el estado de la columna, para detectar si debe de recibir datos de entrada o no
+                // Se calcula el hover por separado sin afectar el estado real de escritura
+                int tempStatus = isPressed(cVector[number]);                                    // Se obtiene el estado temporal solo para el efecto visual del hover
+                if (tempStatus == 1 && cVector[number]->status <= 1)                           // Si hay hover y la columna no estaba activa, se aplica el hover solo visualmente
+                    cVector[number]->status = 1;                                               // Se aplica el estado hover sin interrumpir la escritura
+                PrettyDrawRectangle(cVector[number]);                                           // Dibuja la barra con el hover ya reflejado
+                cVector[number]->status = isPressed(cVector[number]);                           // Ahora sí se actualiza el estado real para la lógica de escritura
                 if (cVector[number]->status > 1)                                                // Si se interactúa con la columna, entonces recibirá datos de entrada
                 {
                     if (cVector[number]->status == 4) {tabRestart = true;}                      // Si la columna recibe un clic, entonces tabRestart se activará, esto para reiniciar la función de tabulación y avisar que la columna actual cambió
@@ -342,7 +349,13 @@ std::vector<double> statistics(std::string mode,                          // El 
                       (screenWidth * 0.04 * dataVec.size()) +                                           // Su ancho depende de la cantidad de partidos
                       (maxPartName * ((littleFontSize / 2) * dataVec.size())) + screenWidth * 0.02,
                       screenHeight * 0.003 * 100 + (littleFontSize * 3) + screenHeight * 0.04,          // Su alto cubre como máximo el 30% de la pantalla, sumando el espacio de los nombres y porcentajes
-                      Fade(VOCADORADO, 0.5f));                                                          // Se aplica un 50% de transparencia al color del fondo
+                      WHITE);                                                                           // Fondo blanco para que contraste con el fondo oscuro de la pantalla
+        DrawRectangleLines(posx - screenWidth * 0.02,                                                   // Dibuja el borde dorado alrededor del cuadro de resultados
+                           posy - screenHeight * 0.003 * 100 - screenHeight * 0.02,
+                           (screenWidth * 0.04 * dataVec.size()) +
+                           (maxPartName * ((littleFontSize / 2) * dataVec.size())) + screenWidth * 0.02,
+                           screenHeight * 0.003 * 100 + (littleFontSize * 3) + screenHeight * 0.04,
+                           DORADO_BORDE);                                                               // Usa el mismo color dorado que todos los botones del programa para ser consistente visualmente
 
         for (int item = 0; item < (int)dataVec.size(); item++)                                          // Recorre cada partido y dibuja su barra gráfca junto con su nombre y porcentaje
         {

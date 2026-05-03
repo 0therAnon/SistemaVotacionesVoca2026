@@ -11,7 +11,7 @@
 # Lo que hace este compilador es ejecutar el comando make y ejecutar el programa, el comando make se encarga del compilado del programa, solo que make es más rapido debido a que solo recompila desde cero los archivos que hayan sido modificados
 # El comando make para funcionar, lo que hace es leer un archivo llamado Makefile, el cual posee toda la configuración de compilado
 
-ls ./build/deps/linux.tar.xz
+ls ./build/deps/linux.tar.xz 2>/dev/null
 
 if [ $? -eq 0 ]; then
   tar -xvf ./build/bin.tar.xz
