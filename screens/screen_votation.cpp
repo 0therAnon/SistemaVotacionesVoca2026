@@ -35,8 +35,9 @@ void screenVotationUpdate(Screen& currentScreen,        // Necesita la variable 
 
 // Frontend de VOTATION
 
-void screenVotationDraw(bool& votoBlanco)           // Necesita a la variable votoBlanco para verificar si debe mostrar el mensaje comunicando de que debe votar por una opción
+void screenVotationDraw(Screen &currentScreen, bool& votoBlanco)           // Necesita a la variable votoBlanco para verificar si debe mostrar el mensaje comunicando de que debe votar por una opción
 {
+    if (currentScreen == VOTATION) transition("show");
     DrawTextEx(fontTtf, "Por favor, escoja un partido por el que desea votar"s.data(),                                            // En el frontend mostrará un mensaje diciendo de que vote por algún partido
                (Vector2){(float)centertext("Por favor, escoja un partido por el que desea votar"s, screenWidth, fontSize),
                           (float)(screenHeight * 0.1)},
@@ -50,6 +51,11 @@ void screenVotationDraw(bool& votoBlanco)           // Necesita a la variable vo
     DrawTextEx(fontTtf, votarPtr->name.data(),                                                                                    // Y dibujará el nombre de ese botón
                (Vector2){votarPtr->xloc + (float)centertext(votarPtr->name, continuarPtr->xsize, fontSize),
                           votarPtr->yloc + (float)((votarPtr->ysize - fontSize) / 2)},
-               fontSize, 2, BLACK);
+               fontSize, 2, NEGRO);
     if (votoBlanco) shortmessage("Tiene que seleccionar una opción", mediumFontSize, votoBlanco);                                 // Si votoBlanco es verdadero, es decir, se intentó votar por ninguna opción, aparecerá un mensaje
+    if (currentScreen != VOTATION && alphaIsZero == false)
+    {
+        transition("hide");
+        screenVotationDraw(currentScreen, votoBlanco);
+    }
 }

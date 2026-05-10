@@ -2,7 +2,7 @@
 
 # Compilado en mínima optimización
 
-echo "\nCompilando en mínima optimización...\n\n" && cmd="x86_64-w64-mingw32-g++ -s -DNDEBUG -O0 -std=c++20"
+echo "\nCompilando en mínima optimización...\n\n" && cmd="x86_64-w64-mingw32-g++ -s -DNDEBUG -O3 -std=c++20"
 
 # Compilado en modo release (máxima optimización) (el modo release es el modo en el que el ejecutable se compilará para su uso real, es más rápido y sirve para probar la velocidad real del ejecutable):
 

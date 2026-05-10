@@ -25,8 +25,9 @@ void screenEndingUpdate(Screen& currentScreen,      // Necesita a currentScreen 
 
 // Frontend de ENDING
 
-void screenEndingDraw(int verifyvote)
+void screenEndingDraw(Screen &currentScreen, int verifyvote)
 {
+    if (currentScreen == ENDING) transition("show");
     if (verifyvote == 0)                            // Si verifyvote, el cual almacena el largo de la respuesta que verifica si ya el estudiante ha votado o no, es igual a cero, significa que el estudiante ya votó entonces...
     {
         DrawTextEx(fontTtf, "Ya usted ha votado, no puede hacerlo de nuevo",                                                  // Dibuja el mensaje diciendole al estudiante de que ya ha votado
@@ -40,5 +41,10 @@ void screenEndingDraw(int verifyvote)
                    (Vector2){(float)centertext("Muchas gracias por su voto, puede retirarse", screenWidth, fontSize),
                               (float)(screenHeight * 0.5)},
                    fontSize, 2, COLORTEXTO);
+    }
+    if (currentScreen != ENDING && alphaIsZero == false)
+    {
+        transition("hide");
+        screenEndingDraw(currentScreen, verifyvote);
     }
 }

@@ -80,7 +80,7 @@ inline std::string inputfunc(std::string mode,                            // Ver
                                                                              regexponly:      Admite números y símbolos
                                                                              allchars-admin:  Admite absolutamente todo tipo de carácteres en el abecedario latín */
                              double fsize = 0,                            // Es el tamaño del font de la letra a mostrar en el frontend
-                             Color col = BLACK,                           // Es el color de la letra a mostrar en el frontend
+                             Color col = NEGRO,                           // Es el color de la letra a mostrar en el frontend
                              int maxBackspace = 7,                        // Es un limitador para que la tecla BACKSPACE y DELETE no borren todo el contenido inmediatamente cuando se presionen
                              int maxBeam = 120,                           // Es un limitador para verificar cuanto tiempo se debe mostrar la barra del cursor y cuanto tiempo debe ocultarse, para dar el efecto de parpadeo
                              int maxStopArrows = 8)                       // Es parecido al limitador de la tecla BACKSPACE y DELETE, solo que con las flechas de derecha e izquierda, sino se desplazaría inmediatamente hasta el otro extremo del texto
@@ -224,7 +224,7 @@ inline std::string inputfunc(std::string mode,                            // Ver
                     (int)(bar->yloc + ((bar->ysize - fsize) / 4)),
                     (int)((bar->xloc * 1.04) + measured.x),
                     (int)(bar->yloc + fsize * 1.6),
-                    bar->name != barAdminTerminalPtr->name ? BLACK : WHITE);            // En caso de que la barra de datos de entrada sea barAdminTerminalPtr, la barra parpadeante en vez de dibujarse negra, se dibujará blanca
+                    bar->name != barAdminTerminalPtr->name ? NEGRO : BLANCO);            // En caso de que la barra de datos de entrada sea barAdminTerminalPtr, la barra parpadeante en vez de dibujarse negra, se dibujará blanca
             }
         }
         else          // Si el modo SÍ es "boolean"...

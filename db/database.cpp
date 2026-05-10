@@ -20,6 +20,7 @@ int sendquery(const char* query, int min, int sub, int response, std::string div
     {                                       // En caso de que este if se ejecute, significaría que la función anterior mysql_query() tuvo un error, por lo que respondió con un estado NO igual a 0, entrando en este if
         outQuery = mysql_error(conn);       // A outQuery se le pasa como contenido el error que haya ocurrido en la query a la base de datos por medio de la función mysql_error()
         outQuery += "\n";                   // Se le agrega un newline
+        std::cout<<outQuery<<"\n\n\n\n";
         return 1;                           // Retorna 1, lo cual significa que hubo un error, si esta línea ocurre, el resto del código lo ignora
     }
     res = mysql_use_result(conn);           // Almacena un puntero a la respuesta de la conexión que se usó para realizar la query anterior, es decir, res almacena la respuesta

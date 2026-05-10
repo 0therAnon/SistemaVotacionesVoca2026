@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 
-static const Color DORADO_BORDE = {212, 175, 55, 255};  // Dorado para los bordes de todos los botones
 // ── Forward declarations ──────────────────────────────────────────────────────
 int centertext(std::string message, double width, double fontsize);
 std::string keepLastNLines(const std::string& text, int n = 1000);
@@ -29,12 +28,12 @@ inline void PrettyDrawRectangle(T obj)              // Esta función se encarga 
 
     // Sombra suave debajo del botón, desaparece al presionar para reforzar el efecto de hundimiento
     if (obj->status != 3 && obj->status != 4)
-        DrawRectangleRounded({rx + 3, ry + 4, rw, rh}, 0.4f, 0, Fade(BLACK, 0.25f));
+        DrawRectangleRounded({rx + 3, ry + 4, rw, rh}, 0.4f, 0, GRIS);
 
     // Cuerpo del botón con bordes en forma de píldora (0.5f)
     // Si status > 1 usa highColor (beige cálido), sino usa normalColor (beige pastel)
     DrawRectangleRounded({rx, ry, rw, rh},
-                         0.4f, 0, obj->status > 1 ? obj->highColor : obj->normalColor);
+                         0.4f, 0, obj->status > 1 ? *(obj->highColor) : *(obj->normalColor));
 
     // Borde dorado: más grueso en hover, más fino al presionar, grosor estándar en reposo
     float borderThick = (obj->status == 1)                     ? 5.0f :   // Hover: 6px para feedback visual claro
@@ -59,7 +58,7 @@ inline void drawSelected(V butVector,               // Esta función se encarga 
         {
             DrawRectangleRounded({(float)butVector[i]->xloc, (float)butVector[i]->yloc,                             // Dibuja el botón con bordes redondos
                                   (float)butVector[i]->xsize, (float)butVector[i]->ysize},
-                                 0.5f, 0, butVector[i]->highColor);
+                                 0.5f, 0, *(butVector[i]->highColor));
             DrawRectangleRoundedLinesEx({(float)butVector[i]->xloc, (float)butVector[i]->yloc,                      // Dibuja las líneas del borde del botón con bordes redondos
                                          (float)butVector[i]->xsize, (float)butVector[i]->ysize},
                                         0.5f, 0, 5.5f, DORADO_BORDE);
@@ -68,7 +67,7 @@ inline void drawSelected(V butVector,               // Esta función se encarga 
         DrawTextEx(fontTtf, butVector[i]->name.data(),                                          // Se dibuja el nombre del botón
                    (Vector2){(float)centertext(butVector[i]->name, width, fontsize),
                               (float)((butVector[i]->yloc + butVector[i]->ysize + butVector[i]->yloc) / 2.0 - fontsize / 2.0)},
-                   fontsize, 0, BLACK);
+                   fontsize, 0, NEGRO);
     }
 }
 
@@ -83,3 +82,4 @@ std::vector<double> statistics(std::string mode, std::string outputMode,
                                std::vector<sqlobject*> partVec,
                                int posx = 0, int posy = 0);
 bool        alert(std::string botonActual);
+int         transition(std::string mode);

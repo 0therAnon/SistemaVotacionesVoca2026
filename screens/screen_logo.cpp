@@ -1,18 +1,21 @@
+#include <chrono>
+#include <thread>
 #include "../globals.hpp"
 #include "screen_logo.hpp"
 #include "../config/config.hpp"
 #include "../db/database.hpp"
 #include "../ui/objects.hpp"
+#include "../ui/drawing.hpp"
 #include <filesystem>
 #include <fstream>
 #include <chrono>
 
-// BACKEND DE LA PANTALLA  LOGO 
+// BACKEND DE LA PANTALLA  LOGO
 
 void screenLogoUpdate(Screen& currentScreen, bool& errorConfig, bool& errorUpdating)      // Es función void ya que no retorna nada cuando termina, necesita a currentScreen, errorConfig y errorUpdating para modificar sus valores a nivel global
 {
     framesCounter++;              // framesCounter actúa como contador, los FPS (Frames Per Second) del programa son 60, 1 segundo es igual a 60 FPS, entonces 120 son 2 segundos
-    if (framesCounter > 120)      // Cuando ya pasan 120 FPS (2 segundos), el programa entra a este if
+    if (framesCounter > 300)      // Cuando ya pasan 120 FPS (2 segundos), el programa entra a este if
     {
         framesCounter = 0;        // Reinicia framesCounter, ya que se usará para otros escenarios
         configureData();          // Carga la configuración del archivo de configuración, el cual debe encontrarse en la carpeta actual, llamado ".config"
@@ -53,8 +56,13 @@ void screenLogoUpdate(Screen& currentScreen, bool& errorConfig, bool& errorUpdat
     }
 }
 
-// FRONTEND DE LA PANTALLA LOGO 
-void screenLogoDraw()
+// FRONTEND DE LA PANTALLA LOGO
+void screenLogoDraw(Screen& currentScreen)
 {
-    // Pantalla de carga sin contenido visual por ahora
+    if (currentScreen == LOGO) transition("show");
+    if (currentScreen != LOGO && alphaIsZero == false)
+    {
+        transition("hide");
+        screenLogoDraw(currentScreen);
+    }
 }

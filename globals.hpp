@@ -1,10 +1,9 @@
 #pragma once
 
-// globals.hpp must be the FIRST include in every .cpp that uses MySQL + raylib together.
-// platform/compat.hpp handles the symbol-conflict resolution between windows.h and raylib.h.
+// globals.hpp debe ser el PRIMER include en todo .cpp que use MySQL + raylib juntos.
+// platform/compat.hpp maneja el conflicto de símbolos entre windows.h y raylib.h.
 
 #include "platform/compat.hpp"
-#include "ui/widgets.hpp"
 
 #include <iostream>
 #include <vector>
@@ -48,12 +47,16 @@ extern MYSQL*     auth;
 extern MYSQL*     conn;
 
 // ── Colors ───────────────────────────────────────────────────────────────────
+extern Color DORADO_BORDE;
 extern Color VOCAVERDE;
 extern Color VOCAVERDESUAVE;
 extern Color VOCAAMARILLO;
 extern Color VOCAAMARILLOSUAVE;
 extern Color VOCADORADO;
 extern Color VOCADORADOSUAVE;
+extern Color NEGRO;
+extern Color GRIS;
+extern Color BLANCO;
 extern Color COLORTEXTO;
 
 // ── File / query state ───────────────────────────────────────────────────────
@@ -64,6 +67,7 @@ extern std::vector<std::string> vecColumns;
 extern std::vector<std::string> namepartidos;
 extern std::vector<std::string> nametables;
 extern std::vector<std::string> lastLogs;
+extern std::vector<Color*>      colorsVec;
 extern std::vector<double>      percentages;
 extern std::string oldTableSelected;
 extern std::string partidoSelected;
@@ -94,6 +98,10 @@ extern bool adminAuthenticated;
 extern bool backupReleased;
 extern bool pdfRandomError;
 extern bool pdfFontError;
+extern bool successReset;
+extern bool alphaIsZero;
+extern bool errorReset;
+extern bool alphaIsFull;
 extern bool tabRestart;
 extern bool nullOption;
 extern bool darkMode;
@@ -127,6 +135,8 @@ extern int add;
 extern jmp_buf env;
 
 // ── UI object vectors and raw pointer aliases ────────────────────────────────
+#include "ui/widgets.hpp"
+
 extern std::vector<std::unique_ptr<nxyxys>> adminObj;
 extern std::vector<sqlobject*> partidosVec;
 extern std::vector<sqlobject*> opcionesAct;
@@ -150,6 +160,7 @@ extern inputBar*  actBarPtr;
 extern button*    cambiarFrontendPtr;
 extern button*    enterConfigPtr;
 extern button*    saveConfigPtr;
+extern button*    resetDataPtr;
 extern button*    continuarPtr;
 extern button*    opcionActPtr;
 extern button*    resTogglePtr;

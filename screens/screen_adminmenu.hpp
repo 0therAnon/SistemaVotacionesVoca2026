@@ -8,7 +8,8 @@ void screenAdminmenuUpdate(Screen& currentScreen,
                            std::string& explorarFinalOutput, std::string& strresultados,
                            std::string& votes, std::string& outputTerm, std::string& modeInput,
                            std::string& outResultsMode, int& opcSize);
-void screenAdminmenuDraw(bool &invalidCredentials, bool &inputEmpty, bool &invalidIp,
+void screenAdminmenuDraw(Screen &currentScreen,
+                         bool &invalidCredentials, bool &inputEmpty, bool &invalidIp,
                          bool &adminAuthenticated_local, bool& successfulPdfCreation,
                          const std::string &explorarFinalOutput, std::string& modeInput,
                          std::string &outResultsMode);

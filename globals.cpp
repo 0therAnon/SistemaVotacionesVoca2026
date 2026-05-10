@@ -64,13 +64,17 @@ MYSQL*     conn = nullptr;    // Variable que almacenará un puntero a la conexi
 // ── Colors ────────────────────────────────────────────────────────────────────
 // Los valores de los colores se definen en RGB y Alpha (RGBA) | Alpha es la transparencia del color, si Alpha es 0, es transparente, si es 255, es totalmente sólido
 // Por ejemplo, el VOCAVERDE tiene un valor de ROJO = 0
-Color VOCAVERDE         = {245, 235, 210, 255};  // Beige pastel (botón normal)
-Color VOCAVERDESUAVE    = {250, 244, 228, 255};  // Beige muy suave (tablas normal)
-Color VOCAAMARILLO      = {220, 200, 160, 255};  // Beige más cálido (hover)
-Color VOCAAMARILLOSUAVE = {250, 244, 228, 255};  // Beige suave
-Color VOCADORADO        = {220, 200, 160, 255};  // Beige cálido (seleccionado)
-Color VOCADORADOSUAVE   = {245, 235, 210, 255};  // Beige pastel
-Color COLORTEXTO        = BLACK;
+Color VOCAVERDE         = {245, 235, 210, 0};  // Beige pastel (botón normal)
+Color VOCAVERDESUAVE    = {250, 244, 228, 0};  // Beige muy suave (tablas normal)
+Color VOCAAMARILLO      = {220, 200, 160, 0};  // Beige más cálido (hover)
+Color VOCAAMARILLOSUAVE = {250, 244, 228, 0};  // Beige suave
+Color VOCADORADO        = {220, 200, 160, 0};  // Beige cálido (seleccionado)
+Color VOCADORADOSUAVE   = {245, 235, 210, 0};  // Beige pastel
+Color DORADO_BORDE      = {212, 175, 55, 0};   // Dorado para los bordes de todos los botones
+Color NEGRO             = {0, 0, 0, 0};        // Color negro
+Color GRIS              = {120, 120, 120, 0};     // Color gris
+Color BLANCO            = {255, 255, 255, 0};  // Color blanco
+Color COLORTEXTO        = NEGRO;               // Color negro para el texto
 
 // ── File / query state ────────────────────────────────────────────────────────
 std::ofstream configFile;   // Variable que servirá para almacenar el contenido del archivo de configuración
@@ -80,6 +84,7 @@ std::vector<std::string> vecColumns;              // Vector que se encontrará d
 std::vector<std::string> namepartidos;            // Vector que almacenará el nombre de los partidos cargados de la base de datos MySQL
 std::vector<std::string> nametables;              // Vector que almacenará el nombre de las tablas cargadas de la base de datos MySQL
 std::vector<std::string> lastLogs;                // Vector que almacenará los ultimos valores de cada log de adminButtons, se almacenan en este registro para que no se pierdan cuando se llama objectCreation()
+std::vector<Color*>      colorsVec;               // Vector que almacenará todos los colores del programa
 std::vector<double>      percentages;             // Vector que almacenará los porcentajes de los votos de cada partido, se usa principalmente en la función statistics() que se encuentra en ./ui/drawing.cpp
 std::string oldTableSelected  = "";     // Variable que almacena la última tabla seleccionada, sirve principalmente para actualizar las columnas comparando la tabla actual con la vieja en la función drawcolumns() dentro de ./ui/drawing.cpp
 std::string backupRetString   = "";     // Variable que almacena el string de respuesta del backup ejecutado
@@ -110,6 +115,10 @@ bool adminAuthenticated = false;  // Verifica si el administrador fue autenticad
 bool backupReleased     = false;  // Verifica si se realizó un backup
 bool pdfRandomError     = false;  // Verifica si hubo un error en la creación de los PDFs
 bool pdfFontError       = false;  // Verifica si hubo un error con la carga del font al PDF
+bool successReset       = false;  // Verifica si se reinició la base de datos correctamente
+bool alphaIsZero        = false;  // Verifica si la transparencia de todos los colores es cero (para la función transition())
+bool alphaIsFull        = false;  // Verifica si la transparencia de todos los colores es 255 (para la función transition())
+bool errorReset         = false;  // Verifica si huno un error al reiniciar la base de datos
 bool tabRestart         = false;  // Sirve como activador en las funciones de moverse entre barras de entrada con la tecla TAB en el panel de administración
 bool nullOption         = false;  // Verifica si existe un partido NULO en las tablas existentes de la base de datos MySQL
 bool darkMode           = false;  // Verifica si el modo de usuario del sistema es modo oscuro, en caso de que sea falso significa que es modo claro, el modo claro es el predeterminado
@@ -168,6 +177,7 @@ inputBar*  actBarPtr            = nullptr;
 button*    cambiarFrontendPtr   = nullptr;
 button*    enterConfigPtr       = nullptr;
 button*    saveConfigPtr        = nullptr;
+button*    resetDataPtr         = nullptr;
 button*    continuarPtr         = nullptr;
 button*    opcionActPtr         = nullptr;
 button*    resTogglePtr         = nullptr;

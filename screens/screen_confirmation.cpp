@@ -42,7 +42,6 @@ void screenConfirmationUpdate(Screen& currentScreen,      // Necesita la variabl
             else
             {
                 votarPtr->status = 0;          // Se resetea el estado de votar para que no aparezca presionado al volver a VOTATION
-                partidoSelected = "";
                 currentScreen = VOTATION;      // En caso de que el estudiante SÍ se haya confirmado, significa que anteriormente estaba en la pantalla VOTATION, entonces únicamente se devolverá a esa pantalla
             }
             return;       // Retorno de la función, no se necesita hacer nada más
@@ -81,11 +80,13 @@ void screenConfirmationUpdate(Screen& currentScreen,      // Necesita la variabl
 
 // Frontend de CONFIRMATION
 
-void screenConfirmationDraw(bool existstudent,                  // Necesita saber si el estudiante existe en la base de datos
+void screenConfirmationDraw(Screen &currentScreen,
+                            bool existstudent,                  // Necesita saber si el estudiante existe en la base de datos
                             bool correctstudent,                // Necesita también saber si el estudiante se ha confirmado
                             const std::string& studentName)     // Y necesita el nombre del estudiante
 {
-    if (!correctstudent && existstudent)              // Si NO se ha confirmado de que el estudiante sea el correcto pero el estudiante SÍ existe...
+    if (currentScreen == CONFIRMATION) transition("show");
+    if (!correctstudent && existstudent || partidoSelected.empty())     // Si NO se ha confirmado de que el estudiante sea el correcto pero el estudiante SÍ existe o ya se verificó y la siguiente pantalla será NO será VOTATION
     {
         DrawTextEx(fontTtf, "Verifique si su nombre es correcto:"s.data(),                                                      // Mostrará un mensaje para decirle al estudiante que confirme su nombre
                    (Vector2){(float)centertext("Verifique si su nombre es correcto:"s, screenWidth, fontSize),
@@ -100,11 +101,11 @@ void screenConfirmationDraw(bool existstudent,                  // Necesita sabe
         DrawTextEx(fontTtf, continuarPtr->name.data(),
                    (Vector2){continuarPtr->xloc + (float)centertext(continuarPtr->name, continuarPtr->xsize, fontSize),         // Luego dibujará el nombre del botón continuar
                               continuarPtr->yloc + (float)((continuarPtr->ysize - fontSize) / 2)},
-                   fontSize, 2, BLACK);
+                   fontSize, 2, NEGRO);
         DrawTextEx(fontTtf, regresarPtr->name.data(),                                                                           // Y luego dibujará el nombre de regresar
                    (Vector2){regresarPtr->xloc + (float)centertext(regresarPtr->name, regresarPtr->xsize, fontSize),
                               regresarPtr->yloc + (float)((regresarPtr->ysize - fontSize) / 2)},
-                   fontSize, 2, BLACK);
+                   fontSize, 2, NEGRO);
     }
     else if (!existstudent)                           // Si el estudiante NO existe en la base de datos...
     {
@@ -124,9 +125,9 @@ void screenConfirmationDraw(bool existstudent,                  // Necesita sabe
         DrawTextEx(fontTtf, regresarPtr->name.data(),                                                                           // Y el nombre del botón regresar
                    (Vector2){regresarPtr->xloc + (float)centertext(regresarPtr->name, regresarPtr->xsize, fontSize),
                               regresarPtr->yloc + (float)((regresarPtr->ysize - fontSize) / 2)},
-                   fontSize, 2, BLACK);
+                   fontSize, 2, NEGRO);
     }
-    else                                              // Si ninguno de los dos if ocurrieron, significa que lo que corresponde dibujar sería el mensaje para confirmar el voto, entonces...
+    else       // Si ninguno de los dos if ocurrieron, significa que lo que corresponde dibujar sería el mensaje para confirmar el voto, entonces...
     {
         std::string mselected = "Seleccionó "s + partidoSelected + " es correcto?"s;                                            // Mostrará un mensaje diciendo que confirme el partido por el que votó, y el nombre del partido
         DrawTextEx(fontTtf, mselected.data(),
@@ -138,10 +139,15 @@ void screenConfirmationDraw(bool existstudent,                  // Necesita sabe
         DrawTextEx(fontTtf, continuarPtr->name.data(),                                                                          // Procederá a dibujar el nombre del botón continuar
                    (Vector2){continuarPtr->xloc + (float)centertext(continuarPtr->name, continuarPtr->xsize, fontSize),
                               continuarPtr->yloc + (float)((continuarPtr->ysize - fontSize) / 2)},
-                   fontSize, 2, BLACK);
+                   fontSize, 2, NEGRO);
         DrawTextEx(fontTtf, regresarPtr->name.data(),                                                                           // Como también dibujará el nombre del botón regresar
                    (Vector2){regresarPtr->xloc + (float)centertext(regresarPtr->name, regresarPtr->xsize, fontSize),
                               regresarPtr->yloc + (float)((regresarPtr->ysize - fontSize) / 2)},
-                   fontSize, 2, BLACK);
+                   fontSize, 2, NEGRO);
+    }
+    if (currentScreen != CONFIRMATION && alphaIsZero == false)
+    {
+        if (transition("hide") == -1) partidoSelected = "";
+        screenConfirmationDraw(currentScreen, existstudent, correctstudent, studentName);
     }
 }

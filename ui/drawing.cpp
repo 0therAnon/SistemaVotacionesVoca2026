@@ -54,7 +54,7 @@ int logfunction(std::string selected,                                           
         outSquare[2] = screenWidth * 0.76;
         outSquare[3] = screenHeight - lastColumnMeasures - screenHeight * 0.04;
         DrawRectangleRounded({outSquare[0], outSquare[1], outSquare[2], outSquare[3]},
-                             0.02f, 0, BLACK);                                              // Se dibuja el fondo negro del cuadro de resultados con esquinas ligeramente redondeadas
+                             0.02f, 0, NEGRO);                                              // Se dibuja el fondo negro del cuadro de resultados con esquinas ligeramente redondeadas
         DrawRectangleRoundedLinesEx({outSquare[0], outSquare[1], outSquare[2], outSquare[3]},
                                     0.02f, 0, 3.0f, DORADO_BORDE);                         // Se dibuja el borde dorado alrededor del cuadro de resultados, con el mismo color dorado que usan todos los botones del programa
     }
@@ -145,7 +145,7 @@ int logfunction(std::string selected,                                           
             DrawTextEx(monoTtf, log.data(),                                               // Se procede a dibujar el texto encima de outSquare
                        (Vector2){(float)(outSquare[0] + screenWidth * 0.01),
                                   (float)(outSquare[1] + outSquare[3] * 0.05)},
-                       littleFontSize, 2, WHITE);
+                       littleFontSize, 2, BLANCO);
         }
     }
     return 0;                             // Retorna 0, código de estado exitoso
@@ -237,7 +237,7 @@ std::string drawcolumns(std::vector<sqlobject*> &cTables,                   // V
                 DrawTextEx(fontTtf, nameModified.data(),                                        // Dibuja ahora el nombre de la columna
                            (Vector2){(float)(screenWidth * 0.12),
                                       (float)(cVector[number]->yloc + (cVector[number]->ysize * 0.5) - (fsize * 0.5))},
-                           fsize, 2, BLACK);
+                           fsize, 2, NEGRO);
                 // Se calcula el hover por separado sin afectar el estado real de escritura
                 int tempStatus = isPressed(cVector[number]);                                    // Se obtiene el estado temporal solo para el efecto visual del hover
                 if (tempStatus == 1 && cVector[number]->status <= 1)                           // Si hay hover y la columna no estaba activa, se aplica el hover solo visualmente
@@ -249,7 +249,7 @@ std::string drawcolumns(std::vector<sqlobject*> &cTables,                   // V
                     if (cVector[number]->status == 4) {tabRestart = true;}                      // Si la columna recibe un clic, entonces tabRestart se activará, esto para reiniciar la función de tabulación y avisar que la columna actual cambió
                     cVector[number]->input = inputfunc("backend", cVector[number],              // Se llama a la función inputfunc()) como modo backend para que reciba datos de entrada de la barra de la columna actual
                                                        std::stoi(cVector[number]->maxlen),
-                                                       modeInput, fsize, BLACK);
+                                                       modeInput, fsize, NEGRO);
                     columnSelected = cVector[number]->id;                                       // Nombra como la columna seleccionada a la columna actual
                 }
                 inputfunc("frontend", cVector[number], 0, modeInput, fsize);                    // Ahora, vuelve a llamar a inputfunc() pero como modo frontend, para que muestre los datos de entrada de la columna actual
@@ -287,12 +287,12 @@ int shortmessage(std::string msg, double fs, bool &activator, int timeFps)      
         double r[4] = {(screenWidth * 0.5) - (w / 2),                           // r almacenará los valores del rectangulo donde se mostrará el mensaje
                        (screenHeight * 0.5) - ((screenHeight * 0.3) / 2),
                        w, screenHeight * 0.3};
-        DrawRectangle(r[0], r[1], r[2], r[3], WHITE);                           // Se procede a dibujar el rectángulo
-        DrawRectangleLines(r[0], r[1], r[2], r[3], BLACK);                      // Se dibujan los bordes del rectángulo
+        DrawRectangle(r[0], r[1], r[2], r[3], BLANCO);                           // Se procede a dibujar el rectángulo
+        DrawRectangleLines(r[0], r[1], r[2], r[3], NEGRO);                      // Se dibujan los bordes del rectángulo
         DrawTextEx(fontTtf, msg.data(),                                         // Y se dibuja el texto del mensaje
                    (Vector2){(float)(r[0] + centertext(msg, r[2], fontSize)),
                               (float)(r[1] + (r[3] - fontSize) / 2)},
-                   fontSize, 2, BLACK);
+                   fontSize, 2, NEGRO);
     }
     else                                                                        // Si el tiempo que lleva mostrandose el texto en pantalla ya fue superado al tiempo solicitado, entonces...
     {
@@ -349,7 +349,7 @@ std::vector<double> statistics(std::string mode,                          // El 
                       (screenWidth * 0.04 * dataVec.size()) +                                           // Su ancho depende de la cantidad de partidos
                       (maxPartName * ((littleFontSize / 2) * dataVec.size())) + screenWidth * 0.02,
                       screenHeight * 0.003 * 100 + (littleFontSize * 3) + screenHeight * 0.04,          // Su alto cubre como máximo el 30% de la pantalla, sumando el espacio de los nombres y porcentajes
-                      WHITE);                                                                           // Fondo blanco para que contraste con el fondo oscuro de la pantalla
+                      BLANCO);                                                                           // Fondo blanco para que contraste con el fondo oscuro de la pantalla
         DrawRectangleLines(posx - screenWidth * 0.02,                                                   // Dibuja el borde dorado alrededor del cuadro de resultados
                            posy - screenHeight * 0.003 * 100 - screenHeight * 0.02,
                            (screenWidth * 0.04 * dataVec.size()) +
@@ -382,7 +382,7 @@ std::vector<double> statistics(std::string mode,                          // El 
                     DrawRectangle(posx + (screenWidth * 0.04 * item) + (maxPartName * (littleFontSize / 2) * item),
                                   posy - maximumSizeBar * studentsVoted,
                                   screenWidth * 0.04,
-                                  maximumSizeBar * studentsVoted, BLACK);
+                                  maximumSizeBar * studentsVoted, VOCADORADO);
                 }
             }
 
@@ -404,11 +404,11 @@ std::vector<double> statistics(std::string mode,                          // El 
             DrawTextEx(fontTtf, outputRounded.data(),                                 // Se dibuja el porcentaje
                        (Vector2){(float)(posx + screenWidth * 0.04 * item + maxPartName * (littleFontSize / 2) * item),
                                   (float)(posy + littleFontSize)},
-                       littleFontSize, 2, BLACK);
+                       littleFontSize, 2, NEGRO);
             DrawTextEx(fontTtf, partVec[item]->name.data(),                           // Se dibuja el nombre del partido del bucle actual, ya que hay que recordar que estamos en un bucle desde la línea 48
                        (Vector2){(float)(posx + screenWidth * 0.04 * item + maxPartName * (littleFontSize / 2) * item),
                                   (float)(posy + littleFontSize * 2)},
-                       littleFontSize, 2, BLACK);
+                       littleFontSize, 2, NEGRO);
         }
 
         while (!dataVec.empty()) dataVec.pop_back();                                  // Cuando este bucle termine, se vaciará el vector de los datos de los votos por completo, ya que se tiene que volver a llenar cuando se invoque
@@ -419,4 +419,53 @@ std::vector<double> statistics(std::string mode,                          // El 
 bool alert(std::string bontonActual)
 {
     return true;
+}
+
+int transition(std::string mode)
+{
+    alphaIsZero = true;
+    alphaIsFull = true;
+    if (mode == "hide")
+    {
+        alphaIsFull = false;
+        if (GRIS.a > 0)
+            GRIS.a = GRIS.a - 15;
+        EndDrawing();         // Reiniciar el dibujado terminando
+        BeginDrawing();       // y volviendolo a iniciar, para que el frontend se actualice a los cambios de los colores
+        if (darkMode)                                         // Si el modo oscuro está activo...
+            ClearBackground({45, 45, 48, 255});               // Limpia el background y lo "pinta" de un color oscuro
+        else                                                  // Si el modo oscuro NO está activo
+            ClearBackground({250, 244, 228, 255});            // Limpia el background y lo "pinta" de un color claro
+    }
+    for (int color = 0; color < (int)size(colorsVec); color++)
+    {
+        if (mode == "hide")
+        {
+            if ((int)colorsVec[color]->a != 0)
+            {
+                colorsVec[color]->a = (int)colorsVec[color]->a - 3;
+                alphaIsZero = false;
+            }
+        }
+        else if (mode == "show")
+        {
+            if ((int)colorsVec[color]->a != 255)
+            {
+                colorsVec[color]->a = (int)colorsVec[color]->a + 3;
+                alphaIsFull = false;
+            }
+        }
+
+    }
+    if (mode == "show")
+    {
+        alphaIsZero = false;
+        if (GRIS.a < 255 && alphaIsFull)
+        {
+            GRIS.a = GRIS.a + 15;
+        }
+    }
+    if (alphaIsZero) return -1;
+    else if (alphaIsFull) return 1;
+    return 0;
 }

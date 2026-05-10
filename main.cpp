@@ -19,9 +19,10 @@ int main(void)
     SetWindowMinSize(GetMonitorWidth(0) / 2, GetMonitorHeight(0) / 2);  // Configura el tamaño mínimo de la ventana, el cual es la mitad del tamaño del monitor en ancho y alto
     SetWindowMaxSize(GetMonitorWidth(0), GetMonitorHeight(0));          // Configura el tamaño máximo de la ventana, el cual es el tamaño completo del monitor en ancho y alto
 
-    Screen currentScreen = LOGO;    // Asigna a la variable currentScreen el valor igual a LOGO al inicio del programa, para que comience con la ventana de bienvenida y mostrando el logo del VOCA, el cual aún no ha sido asignado
-    SetTextLineSpacing(nlSpacing);  // Se encarga de la cantidad de espacio entre newlines en el texto que se muestre en el frontend
-    SetTargetFPS(60);               // Especifica la cantidad de FPS a la que el programa se estará ejecutando, esta cantidad será 60 Frames Per Second
+    Screen currentScreen = LOGO;                // Asigna a la variable currentScreen el valor igual a LOGO al inicio del programa, para que comience con la ventana de bienvenida y mostrando el logo del VOCA, el cual aún no ha sido asignado
+    Screen oldCurrentScreen = currentScreen;    // Es igual a la variable currentScreen, solo que se actualiza después del backend y frontend de las pantallas para almacenar la ultima pantalla
+    SetTextLineSpacing(nlSpacing);              // Se encarga de la cantidad de espacio entre newlines en el texto que se muestre en el frontend
+    SetTargetFPS(60);                           // Especifica la cantidad de FPS a la que el programa se estará ejecutando, esta cantidad será 60 Frames Per Second
 
     screenWidth  = GetScreenWidth();  // La variable screenWidth tendrá el valor del ancho de la pantalla
     screenHeight = GetScreenHeight(); // La variable screenHeight tendrá el valor del alto de la pantalla
@@ -76,7 +77,7 @@ int main(void)
         }
 
         // ── Backend switch ────────────────────────────────────────────────────
-        switch (currentScreen)    // Busca cuál es la ventana actual
+        switch (oldCurrentScreen)    // Busca cuál es la ventana actual
         {
             case LOGO:            // En caso de que la ventana sea LOGO
                 screenLogoUpdate(currentScreen, errorConfig, errorUpdating);
@@ -118,34 +119,37 @@ int main(void)
         screenWidth  = GetScreenWidth();      // El tamaño de screenWidth es actualizado
         screenHeight = GetScreenHeight();     // El tamaño de screenHeight es actualizado
 
-        switch (currentScreen)    // Vuelve a ejecutar un switch para buscar cual es la ventana actual
+        switch (oldCurrentScreen)    // Vuelve a ejecutar un switch para buscar cual es la ventana actual
         {
             case LOGO:            // En caso de que la ventana sea LOGO
-                screenLogoDraw();
+                screenLogoDraw(currentScreen);
                 break;
             case CONFIGURATION:   // En caso de que la ventana sea CONFIGURATION
-                screenConfigDraw(inputEmpty, invalidIp, errorUpdating, errorConfig);
+                screenConfigDraw(currentScreen, inputEmpty, invalidIp, errorUpdating, errorConfig);
                 break;
             case MAINMENU:        // En caso de que la ventana sea MAINMENU
-                screenMainmenuDraw();
+                screenMainmenuDraw(currentScreen);
                 break;
             case ADMINMENU:       // En caso de que la ventana sea ADMINMENU
-                screenAdminmenuDraw(invalidCredentials, inputEmpty, invalidIp,
+                screenAdminmenuDraw(currentScreen,
+                                    invalidCredentials, inputEmpty, invalidIp,
                                     adminAuthenticated, successfulPdfCreation,
                                     explorarFinalOutput, modeInput, outResultsMode);
                 break;
             case CONFIRMATION:    // En caso de que la ventana sea CONFIRMATION
-                screenConfirmationDraw(existstudent, correctstudent, studentName);
+                screenConfirmationDraw(currentScreen, existstudent, correctstudent, studentName);
                 break;
             case VOTATION:        // En caso de que la ventana sea VOTATION
-                screenVotationDraw(votoBlanco);
+                screenVotationDraw(currentScreen, votoBlanco);
                 break;
             case ENDING:          // En caso de que la ventana sea ENDING
-                screenEndingDraw(verifyvote);
+                screenEndingDraw(currentScreen, verifyvote);
                 break;
             default: break;
         }
         EndDrawing();             // Termina el "dibujado"
+        oldCurrentScreen = currentScreen;       /* Se actualiza el valor de oldCurrentScreen con el valor real actual | Se utiliza esta variable para crear transiciones entre las pantallas, ya que si se usa la variable currentScreen y no
+                                                   oldCurrentScreen el programa llegará a este switch e inmediatamente mostrará el frontend de la pantalla a la que se ha cambiado, sin permitir mostrar la transición de la pantalla anteior  */
     }
 
     // ── Cleanup ───────────────────────────────────────────────────────────────

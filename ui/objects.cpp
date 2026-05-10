@@ -28,6 +28,18 @@ int objectCreation()
     while (!termBars.empty())    termBars.pop_back();                   // Este vector almacena todas las barras que aparecen en "Terminal", también aparecen en la pestaña "Credenciales" del panel de configuracion
     while (!extraBars.empty())   extraBars.pop_back();                  // Este vector almacena todas las barras que aparecen en la pestaña "Extra" del panel de configuracion
     while (!pathBars.empty())    pathBars.pop_back();                   // Este vector almacena todas las barras que aparecen en la pestaña "Paths" del panel de configuracion
+    while (!colorsVec.empty())   colorsVec.pop_back();                  // Este vector almacena todos los colores del programa
+
+    colorsVec.push_back(&DORADO_BORDE);
+    colorsVec.push_back(&VOCAVERDE);
+    colorsVec.push_back(&VOCAVERDESUAVE);
+    colorsVec.push_back(&VOCAAMARILLO);
+    colorsVec.push_back(&VOCAAMARILLOSUAVE);
+    colorsVec.push_back(&VOCADORADO);
+    colorsVec.push_back(&VOCADORADOSUAVE);
+    colorsVec.push_back(&NEGRO);
+    colorsVec.push_back(&BLANCO);
+    colorsVec.push_back(&COLORTEXTO);
 
     // explorarSquare es el cuadro de fondo de la pestaña "Explorar" del panel de administracion, aquí defino las dimensiones del cuadro
     explorarSquare[0] = screenWidth  * 0.12;
@@ -106,8 +118,8 @@ int objectCreation()
         btn->ysize       = adminPanel[3] * 0.05;                    // Declaro el tamaño de la altura del botón
         btn->outLog      = lastLogs[i];                             // Esta variable almacenará los resultados de las queries según el botón en el panel de administracion, para más información revisar la función logfunction() en ui/drawing.cpp
         btn->status      = 0;                                       // Se declara el estado del botón, el cual por defecto es 0 (inactivo)
-        btn->highColor   = VOCADORADO;                              // Se declara el color del botón cuando tenga que ser resaltado
-        btn->normalColor = VOCAAMARILLOSUAVE;                       // Se declara el color del botón cuando no debe ser resaltado
+        btn->highColor   = &VOCADORADO;                              // Se declara el color del botón cuando tenga que ser resaltado
+        btn->normalColor = &VOCAAMARILLOSUAVE;                       // Se declara el color del botón cuando no debe ser resaltado
         adminButtons.push_back(btn.get());                          // Se introduce el botón al vector adminButtons, pero solo el puntero del botón
         adminObj.push_back(std::move(btn));                         // Ahora, el botón se introduce a adminObj, y ahora adminObj tiene su propiedad
     }
@@ -124,8 +136,8 @@ int objectCreation()
         btn->ysize       = configPanel[3] * 0.05;
         btn->outLog      = "";
         btn->status      = 0;
-        btn->highColor   = VOCADORADO;                              // Se declara el color del botón cuando tenga que ser resaltado
-        btn->normalColor = VOCAAMARILLOSUAVE;                       // Se declara el color del botón cuando no debe ser resaltado
+        btn->highColor   = &VOCADORADO;                              // Se declara el color del botón cuando tenga que ser resaltado
+        btn->normalColor = &VOCAAMARILLOSUAVE;                       // Se declara el color del botón cuando no debe ser resaltado
         configbuttons.push_back(btn.get());
         adminObj.push_back(std::move(btn));
     }
@@ -137,8 +149,8 @@ int objectCreation()
     opcionAct->yloc   = 0;                          // Declaro su ubiación en el alto de la pantalla (es cero, ya que se declarará más tarde en la pestaña "Actualizar", para más informacion, revisar screens/screen_adminmenu.cpp)
     opcionAct->xsize  = 0;                          // Declaro su ancho (es cero, ya que se declarará después)
     opcionAct->ysize  = adminPanel[3] * 0.05;       // Declaro la altura del botón
-    opcionAct->normalColor = WHITE;                 // Fondo blanco en reposo para distinguirlo visualmente de los demás botones
-    opcionAct->highColor   = {245, 235, 210, 255};  // Beige pastel al tener hover o estar activo
+    opcionAct->normalColor = &BLANCO;                 // Fondo blanco en reposo para distinguirlo visualmente de los demás botones
+    opcionAct->highColor   = &VOCAVERDE;              // Beige pastel al tener hover o estar activo
     opcionActPtr = opcionAct.get();                 // opcionActPtr es el puntero que apuntará al puntero original del botón
     adminObj.push_back(std::move(opcionAct));       // Se introduce el botón a adminObj, y ahora adminObj tiene su propiedad
 
@@ -149,7 +161,7 @@ int objectCreation()
     cedula->yloc      = screenHeight * 0.7;
     cedula->xsize     = screenWidth * 0.16;
     cedula->ysize     = screenHeight * 0.1;
-    cedula->selfquery = "SELECT * FROM Estudiantes WHERE Cedula = '";
+    cedula->selfquery = "SELECT * FROM "s + *nameTableEstudiantes + " WHERE Cedula = '"s;
     cedulaPtr = cedula.get();
     adminObj.push_back(std::move(cedula));
 
@@ -174,7 +186,7 @@ int objectCreation()
     votar->xsize     = screenWidth * 0.16;
     votar->ysize     = screenHeight * 0.1;
     votar->status    = 0;
-    votar->selfquery = "UPDATE Estudiantes SET Voto = '";
+    votar->selfquery = "UPDATE "s + *nameTableEstudiantes + " SET "s + *nameColumnVotoNombre + " = '"s;
     votarPtr = votar.get();
     adminObj.push_back(std::move(votar));
 
@@ -210,6 +222,17 @@ int objectCreation()
     backup->status    = 0;
     backupPtr = backup.get();
     adminObj.push_back(std::move(backup));
+
+    // resetData button
+    auto resetData = std::make_unique<button>();
+    resetData->name      = "resetData";
+    resetData->xloc      = screenWidth * 0.11;
+    resetData->yloc      = screenHeight * 0.01;
+    resetData->xsize     = screenWidth * 0.01;
+    resetData->ysize     = screenWidth * 0.01;
+    resetData->status    = 0;
+    resetDataPtr = resetData.get();
+    adminObj.push_back(std::move(resetData));
 
     // cambiarFrontend button
     auto cambiarFrontend = std::make_unique<button>();
@@ -296,8 +319,8 @@ int objectCreation()
     terminalBar->xsize       = adminPanel[2];
     terminalBar->ysize       = 1 + (0.5 * (adminPanel[3] - (adminPanel[3] - adminPanel[3] * 0.1)));
     terminalBar->status      = 0;
-    terminalBar->highColor   = BLACK;
-    terminalBar->normalColor = BLACK;
+    terminalBar->highColor   = &NEGRO;
+    terminalBar->normalColor = &NEGRO;
     terminalBar->input       = "";
     terminalBar->input32     = U"";
     terminalBarPtr = terminalBar.get();
@@ -399,8 +422,8 @@ int objectCreation()
     adminTerminal->xsize       = screenWidth * 0.76;
     adminTerminal->ysize       = screenHeight * 0.72;
     adminTerminal->status      = 0;
-    adminTerminal->highColor   = BLACK;
-    adminTerminal->normalColor = BLACK;
+    adminTerminal->highColor   = &NEGRO;
+    adminTerminal->normalColor = &NEGRO;
     adminTerminal->input       = "";
     adminTerminal->input32     = U"";
     adminTerminalPtr = adminTerminal.get();
@@ -414,8 +437,8 @@ int objectCreation()
     barAdminTerminal->xsize       = adminTerminalPtr->xsize;
     barAdminTerminal->ysize       = littleFontSize * 2;
     barAdminTerminal->status      = 0;
-    barAdminTerminal->highColor   = BLACK;
-    barAdminTerminal->normalColor = BLACK;
+    barAdminTerminal->highColor   = &NEGRO;
+    barAdminTerminal->normalColor = &NEGRO;
     barAdminTerminal->input       = "";
     barAdminTerminal->input32     = U"";
     barAdminTerminalPtr = barAdminTerminal.get();
@@ -436,8 +459,8 @@ int objectCreation()
     // opcSelected (la opción seleccionada de la pestaña "Actualizar")
     auto opcSelected = std::make_unique<sqlobject>();
     opcSelected->name        = opcionActPtr->name;
-    opcSelected->normalColor = VOCAVERDE;
-    opcSelected->highColor   = VOCADORADO;
+    opcSelected->normalColor = &VOCAVERDE;
+    opcSelected->highColor   = &VOCADORADO;
     opcSelectedPtr = opcSelected.get();
     adminObj.push_back(std::move(opcSelected));
 
@@ -461,8 +484,8 @@ int objectCreation()
             table->xsize       = screenWidth * 0.1;
             table->ysize       = screenHeight * 0.05;
             table->status      = 0;
-            table->normalColor = VOCAVERDE;
-            table->highColor   = VOCADORADO;
+            table->normalColor = &VOCAVERDE;
+            table->highColor   = &VOCADORADO;
             tablesVec.push_back(table.get());
             adminObj.push_back(std::move(table));
         }

@@ -1,3 +1,5 @@
+#include <chrono>
+#include <thread>
 #include "../globals.hpp"
 #include "screen_mainmenu.hpp"
 #include "../db/database.hpp"
@@ -23,6 +25,7 @@ void screenMainmenuUpdate(Screen& currentScreen,          // Necesita la variabl
         cedulaBarPtr->input  = "";                        // Y se vaciará la input
         cedulaBarPtr->input32  = U"";                     // Y se vaciará la input
         currentScreen = ADMINMENU;                        // La pantalla actual ahora será la del panel de administración
+        adminSelected = adminButtons[0]->name;            // La pestaña seleccionada será la primera en el vector adminButtons ("Consultar") para aparecer en esta pestaña automáticamente si se vuelve a acceder
         return;       // Retorno de la función, no se necesita hacer nada más
     }
 
@@ -51,8 +54,9 @@ void screenMainmenuUpdate(Screen& currentScreen,          // Necesita la variabl
 
 // Frontend de MAINMENU
 
-void screenMainmenuDraw()
+void screenMainmenuDraw(Screen& currentScreen)
 {
+    if (currentScreen == MAINMENU) transition("show");
     DrawTextEx(fontTtf, "Digite su cedula en este campo"s.data(),                                                       // Se muestra un mensaje diciendo de que por favor digite la cédula en la barra
                (Vector2){(float)centertext("Digite su cedula en este campo"s, screenWidth, fontSize),
                           (float)(screenHeight * 0.23)},
@@ -70,6 +74,11 @@ void screenMainmenuDraw()
     DrawTextEx(fontTtf, cedulaPtr->name.data(),
                (Vector2){cedulaPtr->xloc + (float)centertext(cedulaPtr->name, cedulaPtr->xsize, fontSize),
                           cedulaPtr->yloc + (float)((cedulaPtr->ysize - fontSize) / 2)},
-               fontSize, 2, BLACK);
+               fontSize, 2, NEGRO);
     inputfunc("frontend", cedulaBarPtr, 0, "allchars", fontSize);                                                       // Se procede a dibujar el contenido de la barra de la cédula
+    if (currentScreen != MAINMENU && alphaIsZero == false)
+    {
+        transition("hide");
+        screenMainmenuDraw(currentScreen);
+    }
 }

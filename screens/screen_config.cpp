@@ -156,17 +156,17 @@ void screenConfigUpdate(Screen& currentScreen,            // La función necesit
             if (termBars[b]->status > 1)                                                // Y si la barra actual está interactuandose directamente...
             {
                 if (termBars[b]->name != termBars[1]->name)                                         // Si la barra NO es igual al índice uno de termBars (termBars[1] es el puerto) entonces...
-                    inputfunc("backend", termBars[b], 45, "allchars", littleFontSize, WHITE);       // El modo de entrada será allchars
+                    inputfunc("backend", termBars[b], 45, "allchars", littleFontSize, BLANCO);       // El modo de entrada será allchars
                 else                                                                                // En caso de que la barra sí sea igual al índice uno de termBars, entonces...
-                    inputfunc("backend", termBars[b], 45, "numberonly", littleFontSize, WHITE);     // Solo recibirá números con el modo de entrada numberonly
+                    inputfunc("backend", termBars[b], 45, "numberonly", littleFontSize, BLANCO);     // Solo recibirá números con el modo de entrada numberonly
             }
         }
         admPasswordBarPtr->status = isPressed(admPasswordBarPtr);         // Como admPasswordBar está fuera del vector termBars, hay que verificar su estado fuera del bucle
         labNameBarPtr->status = isPressed(labNameBarPtr);                 // labNameBar está fuera del vector termBars, hay que verificar su estado fuera del bucle
         if (admPasswordBarPtr->status > 1)                                // Si se está interactuando con la barra, entonces...
-            inputfunc("backend", admPasswordBarPtr, 25, "allchars", littleFontSize, WHITE);       // Se recibirán datos de entrada de la barra actual
+            inputfunc("backend", admPasswordBarPtr, 25, "allchars", littleFontSize, BLANCO);       // Se recibirán datos de entrada de la barra actual
         if (labNameBarPtr->status > 1)                                // Si se está interactuando con la barra, entonces...
-            inputfunc("backend", labNameBarPtr, 25, "allchars", littleFontSize, WHITE);       // Se recibirán datos de entrada de la barra actual
+            inputfunc("backend", labNameBarPtr, 25, "allchars", littleFontSize, BLANCO);       // Se recibirán datos de entrada de la barra actual
     }
     else if (configSelected == configbuttons[1]->name)  // Si la pestaña activa es "Extra"...
     {
@@ -190,7 +190,7 @@ void screenConfigUpdate(Screen& currentScreen,            // La función necesit
             else extraBars[b]->status = isPressed(extraBars[b]);                        // En caso de que NO se presione la tecla TAB, solo estará vigilando el estado de cada barra
 
             if (extraBars[b]->status > 1)                                               // Si el estado de la barra actual es superior a 1, es decir, se está interactuando con esa barra
-                inputfunc("backend", extraBars[b], 45, "allchars", littleFontSize, WHITE);        // Se recibirán datos de entrada de la barra actual
+                inputfunc("backend", extraBars[b], 45, "allchars", littleFontSize, BLANCO);        // Se recibirán datos de entrada de la barra actual
         }
     }
     else if (configSelected == configbuttons[2]->name)  // Si la pestaña activa es "Paths"...
@@ -215,18 +215,20 @@ void screenConfigUpdate(Screen& currentScreen,            // La función necesit
             else pathBars[b]->status = isPressed(pathBars[b]);                          // En caso de que NO se presione la tecla TAB, solo estará vigilando el estado de cada barra
 
             if (pathBars[b]->status > 1)                                                // Si el estado de la barra actual es superior a 1, es decir, se está interactuando con esa barra
-                inputfunc("backend", pathBars[b], 45, "allchars", mediumFontSize, WHITE);         // Se recibirán datos de entrada de la barra actual
+                inputfunc("backend", pathBars[b], 45, "allchars", mediumFontSize, BLANCO);         // Se recibirán datos de entrada de la barra actual
         }
     }
 }
 
 // Frontend de CONFIGURATION
 
-void screenConfigDraw(bool &inputEmpty,                 // Estas variables sirven principalmente
+void screenConfigDraw(Screen &currentScreen,
+                      bool &inputEmpty,                 // Estas variables sirven principalmente
                       bool &invalidIp,                  // para saber si ocurrieron errores
                       bool &errorUpdating,              // en alguna parte del backend y mostrar
                       bool &errorConfig)                // algun mensaje en este frontend
 {
+    if (currentScreen == CONFIGURATION) transition("show");
     DrawRectangle(configPanel[0], adminPanel[1],
                   configPanel[2], configPanel[3], VOCADORADOSUAVE);    // Usa configPanel para dibujarse independientemente del panel de administración
     DrawLineEx((Vector2){configPanel[0], adminPanel[1]},
@@ -235,7 +237,7 @@ void screenConfigDraw(bool &inputEmpty,                 // Estas variables sirve
     DrawTextEx(fontTtf, "PANEL DE CONFIGURACIÓN"s.data(),                                         // Procede a escribir el título "Panel de Configuración"
                (Vector2){(float)(centertext("PANEL DE CONFIGURACIÓN"s, screenWidth, fontSize)),
                           (float)(screenHeight * 0.03)},
-               fontSize, 2, COLORTEXTO);                                                               // WHITE porque el título flota sobre el fondo negro
+               fontSize, 2, COLORTEXTO);                                                               // BLANCO porque el título flota sobre el fondo negro
 
     // Se actualiza el estado de cada botón de pestaña cada frame para detectar hover correctamente
     for (int i = 0; i < (int)configbuttons.size(); i++)
@@ -249,20 +251,20 @@ void screenConfigDraw(bool &inputEmpty,                 // Estas variables sirve
             DrawTextEx(fontTtf, termBars[b]->name.data(),                             // Dibujará el nombre de la barra
                        (Vector2){(float)screenWidth * 0.15f,
                                   (float)termBars[b]->yloc + ((termBars[b]->ysize * 0.5f) - (littleFontSize * 0.5f))},
-                       littleFontSize, 0, BLACK);
+                       littleFontSize, 0, NEGRO);
             PrettyDrawRectangle(termBars[b]);                                         // Y dibujará la barra misma
             inputfunc("frontend", termBars[b], 0, "allchars", littleFontSize);        // Además del contenido que tiene
         }
         DrawTextEx(fontTtf, admPasswordBarPtr->name.data(),                           // Como admPasswordBar es una barra independiente, hay que dibujar su nombre fuera del bucle
                    (Vector2){(float)screenWidth * 0.15f,
                               (float)admPasswordBarPtr->yloc + ((admPasswordBarPtr->ysize * 0.5f) - (littleFontSize * 0.5f))},
-                   littleFontSize, 0, BLACK);
+                   littleFontSize, 0, NEGRO);
         PrettyDrawRectangle(admPasswordBarPtr);                                       // Llamar a PrettyDrawRectangle para que dibuje a la barra misma
         inputfunc("frontend", admPasswordBarPtr, 0, "allchars", littleFontSize);      // Y llamar a inputfunc() para que dibuje su contenido
         DrawTextEx(fontTtf, labNameBarPtr->name.data(),                               // Como labNameBar es una barra independiente, hay que dibujar su nombre fuera del bucle
                    (Vector2){(float)screenWidth * 0.15f,
                               (float)labNameBarPtr->yloc + ((labNameBarPtr->ysize * 0.5f) - (littleFontSize * 0.5f))},
-                   littleFontSize, 0, BLACK);
+                   littleFontSize, 0, NEGRO);
         PrettyDrawRectangle(labNameBarPtr);                                           // Llamar a PrettyDrawRectangle para que dibuje a la barra misma
         inputfunc("frontend", labNameBarPtr, 0, "allchars", littleFontSize);          // Y llamar a inputfunc() para que dibuje su contenido
     }
@@ -273,7 +275,7 @@ void screenConfigDraw(bool &inputEmpty,                 // Estas variables sirve
             DrawTextEx(fontTtf, extraBars[b]->name.data(),                            // Dibujará el nombre de cada barra
                        (Vector2){(float)screenWidth * 0.15f,
                                   (float)extraBars[b]->yloc + ((extraBars[b]->ysize * 0.5f) - (littleFontSize * 0.5f))},
-                       littleFontSize, 0, BLACK);
+                       littleFontSize, 0, NEGRO);
             PrettyDrawRectangle(extraBars[b]);                                        // Y dibujará la barra misma
             inputfunc("frontend", extraBars[b], 0, "allchars", littleFontSize);       // Además del contenido que tiene
         }
@@ -285,7 +287,7 @@ void screenConfigDraw(bool &inputEmpty,                 // Estas variables sirve
             DrawTextEx(fontTtf, pathBars[b]->name.data(),                             // Dibujará el nombre de cada barra
                        (Vector2){(float)screenWidth * 0.15f,
                                   (float)pathBars[b]->yloc + ((pathBars[b]->ysize * 0.5f) - (mediumFontSize * 0.5f))},
-                       mediumFontSize, 0, BLACK);
+                       mediumFontSize, 0, NEGRO);
             PrettyDrawRectangle(pathBars[b]);                                         // Y dibujará la barra misma
             inputfunc("frontend", pathBars[b], 0, "allchars", mediumFontSize);        // Además del contenido que tiene
         }
@@ -295,7 +297,7 @@ void screenConfigDraw(bool &inputEmpty,                 // Estas variables sirve
     DrawTextEx(fontTtf, saveConfigPtr->name.data(),                                   // Y dibuja el nombre de ese botón también
                (Vector2){saveConfigPtr->xloc + (float)centertext(saveConfigPtr->name, saveConfigPtr->xsize, mediumFontSize),
                           saveConfigPtr->yloc + (float)((saveConfigPtr->ysize - mediumFontSize) / 2)},
-               mediumFontSize, 0, BLACK);
+               mediumFontSize, 0, NEGRO);
 
     // Estas líneas sirven para mostrar los mensajes en caso de algún error
 
@@ -326,5 +328,10 @@ void screenConfigDraw(bool &inputEmpty,                 // Estas variables sirve
         else if (statusCodeConfig == 2)     errorMessage = "Error | Faltaron parametros en el archivo de configuracion";
         if (errorConfig)   shortmessage(errorMessage, mediumFontSize, errorConfig, 450);      // Si errorConfig era el que se encontraba en true, llamará a la función shortmessage con errorConfig entre los argumentos
         else               shortmessage(errorMessage, mediumFontSize, errorUpdating, 450);    // en caso contrario, llamará a errorUpdating
+    }
+    if (currentScreen != CONFIGURATION && alphaIsZero == false)
+    {
+        transition("hide");
+        screenConfigDraw(currentScreen, inputEmpty, invalidIp, errorUpdating, errorConfig);
     }
 }

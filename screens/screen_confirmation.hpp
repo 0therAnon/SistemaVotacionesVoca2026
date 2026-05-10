@@ -4,5 +4,6 @@
 void screenConfirmationUpdate(Screen& currentScreen,
                               bool& existstudent, bool& correctstudent,
                               int& verifyvote);
-void screenConfirmationDraw(bool existstudent, bool correctstudent,
+void screenConfirmationDraw(Screen &currentScreen,
+                            bool existstudent, bool correctstudent,
                             const std::string& studentName);
