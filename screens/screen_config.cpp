@@ -62,14 +62,15 @@ void screenConfigUpdate(Screen& currentScreen,            // La función necesit
                     free(configurations[6]);  configurations[6]  = strdup(labNameBarPtr->input.data());       // Nombre de laboratorio
                     free(configurations[7]);  configurations[7]  = strdup(extraBars[0]->input.data());        // Tabla Estudiantes
                     free(configurations[8]);  configurations[8]  = strdup(extraBars[1]->input.data());        // Tabla Partidos
-                    free(configurations[9]);  configurations[9]  = strdup(extraBars[5]->input.data());        // Columna Voto
-                    free(configurations[10]); configurations[10] = strdup(extraBars[4]->input.data());        // Columna Votos
-                    free(configurations[11]); configurations[11] = strdup(extraBars[2]->input.data());        // Columna Nombre partidos
-                    free(configurations[12]); configurations[12] = strdup(extraBars[3]->input.data());        // Partido nulo
-                    free(configurations[13]); configurations[13] = strdup(pathBars[0]->input.data());         // Font programa
-                    free(configurations[14]); configurations[14] = strdup(pathBars[1]->input.data());         // Font outLogs/terminal
-                    free(configurations[15]); configurations[15] = strdup(pathBars[2]->input.data());         // Font PDF
-                    free(configurations[16]); configurations[16] = strdup(pathBars[3]->input.data());         // Nombre PDF
+                    free(configurations[9]);  configurations[9]  = strdup(extraBars[4]->input.data());        // Columna Voto
+                    free(configurations[10]); configurations[10] = strdup(extraBars[5]->input.data());        // Columna Votos
+                    free(configurations[11]); configurations[11] = strdup(extraBars[6]->input.data());        // Columna Laboratorios
+                    free(configurations[12]); configurations[12] = strdup(extraBars[2]->input.data());        // Columna Nombre partidos
+                    free(configurations[13]); configurations[13] = strdup(extraBars[3]->input.data());        // Partido nulo
+                    free(configurations[14]); configurations[14] = strdup(pathBars[0]->input.data());         // Font programa
+                    free(configurations[15]); configurations[15] = strdup(pathBars[1]->input.data());         // Font outLogs/terminal
+                    free(configurations[16]); configurations[16] = strdup(pathBars[2]->input.data());         // Font PDF
+                    free(configurations[17]); configurations[17] = strdup(pathBars[3]->input.data());         // Nombre PDF
 
                     statusCodeUpdating = updateData();                        // Se actualiza la información de la base de datos y se verifica que la configuración sea correcta, el código de estado de la función se guarda en statusCodeUpdating
                     std::string oldConfigSelected = configSelected;           // Se guarda la última pestaña actual dentro de oldConfigSelected, esto para evitar de que el reinicio de los objetos hagan que la pestaña actual cambie
@@ -86,9 +87,10 @@ void screenConfigUpdate(Screen& currentScreen,            // La función necesit
                             "\nport="s + *port + "\nadmPassword="s + *admPassword + "\nlabName="s + *labName + "\n"s;
                         std::string outExtra =
                             "\n[Extra]\nnameColumnPartidosNombre="s + *nameColumnPartidosNombre +
-                            "\nnameColumnNuloPartido="s + *nameColumnNuloPartido +
+                            "\nnameNuloOpcion="s + *nameNuloOpcion +
                             "\nnameColumnVotosNombre="s + *nameColumnVotosNombre +
                             "\nnameColumnVotoNombre="s + *nameColumnVotoNombre +
+                            "\nnameColumnLabsNombre="s + *nameColumnLabsNombre +
                             "\nnameTableEstudiantes="s + *nameTableEstudiantes +
                             "\nnameTablePartidos="s + *nameTablePartidos + "\n"s;
                         std::string outPaths =
@@ -311,7 +313,7 @@ void screenConfigDraw(Screen &currentScreen,
            si no son iguales a cero, significa que hubo un error, y aquí  está el significado de cada código de estado de cada función */
 
         if      (statusCodeUpdating == -1)  errorMessage = "Por favor, escriba el nombre del laboratorio actual";
-        else if (statusCodeUpdating == 1)   errorMessage = "Error en la conexion a la base de datos";
+        else if (statusCodeUpdating == 1)   errorMessage = "Error en la conexión a la base de datos";
         else if (statusCodeUpdating == 3)   errorMessage = "Error con el nombre de la base de datos";
         else if (statusCodeUpdating == 6)   errorMessage = "Error en el nombre de la tabla de los estudiantes";
         else if (statusCodeUpdating == 7)   errorMessage = "Error en el nombre de la tabla de los partidos";
@@ -319,9 +321,10 @@ void screenConfigDraw(Screen &currentScreen,
         else if (statusCodeUpdating == 9)   errorMessage = "Error en el nombre de la columna de los votos de los partidos";
         else if (statusCodeUpdating == 10)  errorMessage = "Error en el nombre de la columna que almacena el nombre de los partidos";
         else if (statusCodeUpdating == 11)  errorMessage = "Error en el nombre de la opcion a votar nulo";
-        else if (statusCodeUpdating == 12)  errorMessage = "Error en la ruta de la fuente de la letra del programa";
-        else if (statusCodeUpdating == 13)  errorMessage = "Error en la ruta de la fuente de la letra monoespaciada";
-        else if (statusCodeUpdating == 14)  errorMessage = "Error en la ruta de la fuente de la letra para el PDF";
+        else if (statusCodeUpdating == 12)  errorMessage = "Error en el nombre de la columna de los laboratorios de los estudiantes";
+        else if (statusCodeUpdating == 13)  errorMessage = "Error en la ruta de la fuente de la letra del programa";
+        else if (statusCodeUpdating == 14)  errorMessage = "Error en la ruta de la fuente de la letra monoespaciada";
+        else if (statusCodeUpdating == 15)  errorMessage = "Error en la ruta de la fuente de la letra para el PDF";
         else if (statusCodeUpdating == 20)  errorMessage = "Error desconocido";
         else if (statusCodeUpdating == 127) errorMessage = "Error | La IP del servidor no existe";
         else if (statusCodeConfig == 1)     errorMessage = "Error | No se encontro el archivo de configuracion";

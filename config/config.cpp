@@ -28,9 +28,10 @@ labName=\n\
 \n\
 [Extra]\n\
 nameColumnPartidosNombre=Nombre\n\
-nameColumnNuloPartido=NULO\n\
+nameNuloOpcion=NULO\n\
 nameColumnVotosNombre=Votos\n\
 nameColumnVotoNombre=Voto\n\
+nameColumnLabsNombre=Laboratorio\n\
 nameTableEstudiantes=Estudiantes\n\
 nameTablePartidos=Partidos\n\
 \n\
@@ -106,9 +107,10 @@ int loadConfig()    // Nombro a la función loadConfig() sin argumentos ya que n
     extraBars[0]->input32 = UTF8ToUTF32(*nameTableEstudiantes);       /**/              extraBars[0]->input = *nameTableEstudiantes;
     extraBars[1]->input32 = UTF8ToUTF32(*nameTablePartidos);          /**/              extraBars[1]->input = *nameTablePartidos;
     extraBars[2]->input32 = UTF8ToUTF32(*nameColumnPartidosNombre);   /**/              extraBars[2]->input = *nameColumnPartidosNombre;
-    extraBars[3]->input32 = UTF8ToUTF32(*nameColumnNuloPartido);      /**/              extraBars[3]->input = *nameColumnNuloPartido;
+    extraBars[3]->input32 = UTF8ToUTF32(*nameNuloOpcion);             /**/              extraBars[3]->input = *nameNuloOpcion;
     extraBars[4]->input32 = UTF8ToUTF32(*nameColumnVotosNombre);      /**/              extraBars[4]->input = *nameColumnVotosNombre;
     extraBars[5]->input32 = UTF8ToUTF32(*nameColumnVotoNombre);       /**/              extraBars[5]->input = *nameColumnVotoNombre;
+    extraBars[6]->input32 = UTF8ToUTF32(*nameColumnLabsNombre);       /**/              extraBars[6]->input = *nameColumnLabsNombre;
     pathBars[0]->input32 = UTF8ToUTF32(*pathProgramFont);             /**/              pathBars[0]->input = *pathProgramFont;
     pathBars[1]->input32 = UTF8ToUTF32(*pathLogsFont);                /**/              pathBars[1]->input = *pathLogsFont;
     pathBars[2]->input32 = UTF8ToUTF32(*pathPdfFont);                 /**/              pathBars[2]->input = *pathPdfFont;

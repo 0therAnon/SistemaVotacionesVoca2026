@@ -27,33 +27,34 @@ continuar con configurations[1]... y así hasta completar a todos
 std::vector<char*> configurations = {
     strdup("server="), strdup("user="), strdup("password="), strdup("database="),
     strdup("port="), strdup("admPassword="), strdup("labName="), strdup("nameTableEstudiantes="),
-    strdup("nameTablePartidos="), strdup("nameColumnVotoNombre="),
-    strdup("nameColumnVotosNombre="), strdup("nameColumnPartidosNombre="),
-    strdup("nameColumnNuloPartido="), strdup("pathProgramFont="),
+    strdup("nameTablePartidos="), strdup("nameColumnVotoNombre="), strdup("nameColumnVotosNombre="),
+    strdup("nameColumnLabsNombre="), strdup("nameColumnPartidosNombre="),
+    strdup("nameNuloOpcion="), strdup("pathProgramFont="),
     strdup("pathLogsFont="), strdup("pathPdfFont="),
     strdup("informeName=")
 };
 
 // Todos estos son punteros que apuntan a cierto índice del vector configurations
-char** admPassword             = &configurations[5];    // admPassword apunta al índice 5, el cual es el de la contraseña del panel de admistración
-char** password                = &configurations[2];    // password apunta al índice 2, el cual es igual a la contraseña que se utiliza en la conexión del programa a la la base de datos
-char** database                = &configurations[3];    // database apunta al índice 3, el cual es el nombre de la base de datos que se utiliza en la conexión del programa a la base de datos
-char** labName                 = &configurations[6];    // labName apunta al índice 6, el cual es el nombre del laboratorio en el que se encuentra la computadora actual
 char** server                  = &configurations[0];    // server apunta al índice 0, el cual es la IP del servidor MySQL al cual se realiza la conexión del programa a la base de datos
 char** user                    = &configurations[1];    // user apunta al índice 1, el cual es el nombre de usuario que se utiliza en la conexión del programa a la base de datos
+char** password                = &configurations[2];    // password apunta al índice 2, el cual es igual a la contraseña que se utiliza en la conexión del programa a la la base de datos
+char** database                = &configurations[3];    // database apunta al índice 3, el cual es el nombre de la base de datos que se utiliza en la conexión del programa a la base de datos
 char** port                    = &configurations[4];    // port apunta al índice 4, el cual es el número de puerto que se utiliza en la conexión del programa a la base de datos
+char** admPassword             = &configurations[5];    // admPassword apunta al índice 5, el cual es el de la contraseña del panel de admistración
+char** labName                 = &configurations[6];    // labName apunta al índice 6, el cual es el nombre del laboratorio en el que se encuentra la computadora actual
 
-char** nameColumnPartidosNombre = &configurations[11];  // Estos valores son valores extra que
-char** nameColumnNuloPartido    = &configurations[12];  // decidí agregar, ya que no sé si
-char** nameColumnVotosNombre    = &configurations[10];   // en algún momento algun valor de la
-char** nameColumnVotoNombre     = &configurations[9];   // base de datos puede llegar a cambiar
-char** nameTableEstudiantes     = &configurations[7];   // como nombres de columnas o tablas de
-char** nameTablePartidos        = &configurations[8];   // la base de datos en caso de usar una distinta
+char** nameTableEstudiantes     = &configurations[7];   // es el nombre de la tabla de los estudiantes
+char** nameTablePartidos        = &configurations[8];   // es el nombre de la tabla de los partidos
+char** nameColumnVotoNombre     = &configurations[9];   // es el nombre de la columna Voto en la tabla estudiantes
+char** nameColumnVotosNombre    = &configurations[10];  // es el nombre de la columna Votos en la tabla partidos
+char** nameColumnLabsNombre     = &configurations[11];  // es el nombre de la columna Laboratorio en la tabla estudiantes
+char** nameColumnPartidosNombre = &configurations[12];  // es el nombre de la columna con los nombres de los partidos
+char** nameNuloOpcion           = &configurations[13];  // es el nombre del partido NULO
 
-char** pathProgramFont          = &configurations[13];  // Estos valores son rutas a los fonts
-char** pathLogsFont             = &configurations[14];  // que el sistema necesita que son
-char** pathPdfFont              = &configurations[15];  // necesarios para el programa y el PDF de informe
-char** informeName              = &configurations[16];  // como también la definición del nombre de salida del PDF
+char** pathProgramFont          = &configurations[14];  // Estos valores son rutas a los fonts
+char** pathLogsFont             = &configurations[15];  // que el sistema necesita que son
+char** pathPdfFont              = &configurations[16];  // necesarios para el programa y el PDF de informe
+char** informeName              = &configurations[17];  // como también la definición del nombre de salida del PDF
 
 // ── MySQL ─────────────────────────────────────────────────────────────────────
 MYSQL_RES* res  = nullptr;    // Variable que almacena un puntero a la respuesta de las queries a la base de datos MySQL
@@ -144,6 +145,7 @@ int inputpos            = 0;    // Posición actual con el cursor en una barra d
 int opcSize             = 0;    // Almacena la cantidad de las opciones de la lista desplegable en la pestaña "Actualizar", recomiendo probar lo que ocurre cuando no se usa para que se entienda mejor su función
 int logpos              = 0;    // Posición en el registro de logCommands{}
 int tabCnt              = 0;    // Variable usada en la función de TAB para contar cuantos TAB lleva la función
+int timer               = 0;    // Variable que sirve como contador para verificar la cantidad de tiempo que ha pasado desde el último ping a la base de datos para verificar su conexión
 int value               = 0;    // Variable de valores de la función sendquery()
 int beam                = 0;    // Pone un límite a las repeticiones por FPS de la barra de entrada de inputfunc(), esto es como un contador
 int add                 = 0;    // Variable usada en logfunction() para el scroll

@@ -37,7 +37,7 @@ Esta carpeta lo que contiene son las funciones relacionadas a la configuración 
 |
 |  [Extra]
 |  nameColumnPartidosNombre=Nombre                      >-+
-|  nameColumnNuloPartido=NULO                             |
+|  nameNuloOpcion=NULO                             |
 |  nameColumnVotosNombre=Votos                            +---- Valores de la base de datos como columnas o tablas
 |  nameColumnVotoNombre=Voto                              |
 |  nameTableEstudiantes=Estudiantes                       |

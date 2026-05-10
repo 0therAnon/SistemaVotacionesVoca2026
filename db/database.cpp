@@ -1,5 +1,7 @@
 #include "../globals.hpp"
 #include "../platform/ipvalid.hpp"
+#include "../ui/objects.hpp"
+#include "../config/config.hpp"
 #include "database.hpp"
 #include <filesystem>
 #include <string>
@@ -108,7 +110,7 @@ int updateData()              /* Esta función se encarga de cargar información
 
     quantables = 0; quanstudents = 0; quanpartidos = 0; quancolumns = 0;      // En caso de que estos valores contengan información, deben de reiniciarse poniendose en 0
 
-    if (!fs::exists(*pathProgramFont)) return 12;                             // Si NO existe la ruta el font del programa, devuelve código de estado 12 -> "Error en la fuente de la letra del programa"
+    if (!fs::exists(*pathProgramFont)) return 13;                             // Si NO existe la ruta el font del programa, devuelve código de estado 13 -> "Error en la fuente de la letra del programa"
     else                                                                      // En caso de que sí exista...
     {
         if (&fontTtf != nullptr)                                              // Si la dirección en memoria a la que apunta fontTtf no es nula, osea de que sí es un font real el que tenía cargado...
@@ -117,7 +119,7 @@ int updateData()              /* Esta función se encarga de cargar información
         }
         fontTtf = LoadFontEx(*pathProgramFont, fontSize, 0, 250);             // En esta línea, se procederá a cargar el nuevo font, con la ruta de pathProgramFont
     }
-    if (!fs::exists(*pathLogsFont)) return 13;                                // Si NO existe la ruta el font monoespacaiado, devuelve código de estado 13 -> "Error en la fuente monoespaciada del programa"
+    if (!fs::exists(*pathLogsFont)) return 14;                                // Si NO existe la ruta el font monoespacaiado, devuelve código de estado 14 -> "Error en la fuente monoespaciada del programa"
     else                                                                      // En caso de que sí exista...
     {
         if (&fontTtf != nullptr)                                              // Si la dirección en memoria a la que apunta fontTtf no es nula, osea de que sí es un font real el que tenía cargado...
@@ -127,7 +129,7 @@ int updateData()              /* Esta función se encarga de cargar información
         monoTtf = LoadFontEx(*pathLogsFont, fontSize, 0, 250);                // En esta línea, se procederá a cargar el nuevo font, con la ruta de pathLogsFont
     }
 
-    if (!fs::exists(*pathPdfFont)) return 14;                                 // Si NO existe la ruta del font del PDF, devuelve código de estado 14 -> "Error en la ruta de la fuente de la letra del PDF"
+    if (!fs::exists(*pathPdfFont)) return 15;                                 // Si NO existe la ruta del font del PDF, devuelve código de estado 15 -> "Error en la ruta de la fuente de la letra del PDF"
 
     // Se procederá a reiniciar la conexión MySQL y validar la autenticación al servidor
 
@@ -137,11 +139,13 @@ int updateData()              /* Esta función se encarga de cargar información
         conn = nullptr;                                                       // Y ahora conn apuntará a un puntero nulo, esto para reiniciar por completo su estado y dejarlo como nuevo para volver a usarlo
     }
 
-    conn = mysql_init(NULL);                                                  // Ahora, conn almacenará una conexión MySQL, esto se hace por medio de mysql_init() para inicializar una conexión
+    conn = mysql_init(NULL);                                                  // Ahora, conn almacenará una conexión MySQL inicializada, esto se hace por medio de mysql_init() para inicializar una conexión
     if (conn == nullptr) {return 1;}                                          // En caso de que mysql_init() falle, conn almacenará un puntero inválido, se retornará código de estado 1 -> "Error en la conexión a la base de datos"
 
     if (validIP(*server))                                                     // Ahora, se verifica que la IP sea válida, si la IP llega a ser válida...
     {
+        bool reconnect = 1;                                                   // Sirve para pasarle el parámetro de MYSQL_OPT_RECONNECT a mysql_options() para habilitar el ajuste
+        mysql_options(conn, MYSQL_OPT_RECONNECT, &reconnect);                 // Se le pasa el argumento MYSQL_OPT_RECONNECT como parámetro a mysql_options() para indicar que se desea mantener una conexión que se reconecte en caso de pérdida
         if (!mysql_real_connect(conn, *server, *user, *password,              // Se realizará una conexión al servidor MySQL con las credenciales que se suministraron del archivo de configuración o de la pantalla CONFIGURATION
                                 *database, std::atoi(*port), NULL, 0))        // Se debe convertir de valor ASCII a int la variable port, entonces se usa la función atoi(), que significa ascii to int
         {                                                                     // Si el if NO llega a ser exitoso (por eso el signo de exclamación ! antes de la función mysql_real_connect()) entonces ejecutará el siguiente bloque de código
@@ -199,10 +203,13 @@ int updateData()              /* Esta función se encarga de cargar información
     quanpartidos = std::stoi(outQuery);                                                                                                     // En caso de que los 2 if anteriores no ocurrieran, la cantidad de partidos se guarda en quanpartidos
 
     if (sendquery(("SELECT "s + *nameColumnPartidosNombre + " FROM "s + *nameTablePartidos +                                                // Verifico de que la opción a votar nulo se encuentre en la tabla partidos y sea la opción correcta
-                   " WHERE "s + *nameColumnPartidosNombre + " = '"s + *nameColumnNuloPartido + "';").data(),
+                   " WHERE "s + *nameColumnPartidosNombre + " = '"s + *nameNuloOpcion + "';").data(),
                   0, 0) != 0)
     {return 11;}                                                                                                                            // En caso de que la opción no sea correcta, retorna 11 -> "Error en el nombre de la opción a votar nulo"
     if (outQuery.empty()) return 11;
+
+    if (sendquery(("SELECT "s + *nameColumnLabsNombre + " FROM "s + *nameTableEstudiantes).data(), 0, 0) != 0) {return 8;}                  // Se verifica la existencia de la columna del laboratorio del estudiante...
+    else if (outQuery.empty()) {return 12;}                                                                                                 // Si hay un error, se retorna 12 -> "Error en el nombre de la columna de los laboratorios de los estudiantes"
 
     if (sendquery(("SELECT "s + *nameColumnPartidosNombre + " FROM "s + *nameTablePartidos).data(), 0, 0) != 0) {return 20;}                // Se consulta el nombre de los partidos
     else if (outQuery.empty()) {return 20;}                                                                                                 // Si hay un error, se retorna 20 -> "Error desconocido"
@@ -221,7 +228,7 @@ int updateData()              /* Esta función se encarga de cargar información
         }
         else                                                                  // Si el carácter SÍ es un newline
         {
-            if (namepartido == *nameColumnNuloPartido)                        // Verifica si el partido es la opción nula, en caso de que SÍ lo sea...
+            if (namepartido == *nameNuloOpcion)                               // Verifica si el partido es la opción nula, en caso de que SÍ lo sea...
             {
                 namepartido = "";                                             // Vacía a namepartido sin meterlo al vector namepartidos, ya que la opción nula no se debe meter en ese vector
                 quanpartidos--;                                               // Se disminuye la cantidad de quanpartidos, ya que antes contó también al partido nulo
@@ -238,4 +245,56 @@ int updateData()              /* Esta función se encarga de cargar información
     if (((std::string)*labName).empty()) {return -1;}
 
     return 0;               // Retorna 0, código de estado exitoso
+}
+
+int verifyConnection(Screen &currentScreen)
+{
+    if (currentScreen == CONFIGURATION) return 0;                             // Si la pantalla actual es CONFIGURATION no se ejecutará el resto de la función, ya que es innecesario, por que significa que obviamente se está configurando algo
+
+    timer = 0;                                                                // Reinicia el temporizador que llama a esta función cada 15 segundos
+    if (conn != nullptr)                                                      // Si conn es una conexión válida...
+    {
+        if (mysql_ping(conn) != 0)                                            // Si hubo un error al hacer ping a la base de datos, entonces...
+        {
+            mysql_close(conn);                                                // Se cerrará la conexión MySQL
+            conn = nullptr;                                                   // Y ahora conn apuntará a un puntero nulo, esto para reiniciar por completo su estado y dejarlo como nuevo para volver a usarlo
+        }
+        else return 0;                                                        // Si el ping sale exitoso, solo retorna la función, no hay nada más por hacer ya que el ping verifica la conexión a la base de datos
+    }
+
+    conn = mysql_init(NULL);                                                  // Ahora, conn almacenará una conexión MySQL inicializada, esto se hace por medio de mysql_init() para inicializar una conexión
+    if (conn == nullptr) {return 1;}                                          // En caso de que mysql_init() falle, conn almacenará un puntero inválido, se retornará código de estado 1 -> "Error en la conexión a la base de datos"
+
+    if (validIP(*server))                                                     // Ahora, se verifica que la IP sea válida, si la IP llega a ser válida...
+    {
+        std::cout<<"\nCORRECT IP ADDRESS\n";
+        bool reconnect = 1;                                                   // Sirve para pasarle el parámetro de MYSQL_OPT_RECONNECT a mysql_options() para habilitar el ajuste
+        mysql_options(conn, MYSQL_OPT_RECONNECT, &reconnect);                 // Se le pasa el argumento MYSQL_OPT_RECONNECT como parámetro a mysql_options() para indicar que se desea mantener una conexión que se reconecte en caso de pérdida
+        if (!mysql_real_connect(conn, *server, *user, *password,              // Se realizará una conexión al servidor MySQL con las credenciales que se suministraron del archivo de configuración o de la pantalla CONFIGURATION
+                                *database, std::atoi(*port), NULL, 0))        // Se debe convertir de valor ASCII a int la variable port, entonces se usa la función atoi(), que significa ascii to int
+        {                                                                     // Si el if NO llega a ser exitoso (por eso el signo de exclamación ! antes de la función mysql_real_connect()) entonces ejecutará el siguiente bloque de código
+            outQuery = mysql_error(conn) + "\n"s;                             // En outQuery, escribe el error que ocurrió en la conexión, junto con un newline
+            mysql_close(conn);                                                // Llama a mysql_close() para cerrar la conexión
+            conn = nullptr;                                                   // Declara a conn con un puntero nulo para limpiar su contenido
+            statusCodeUpdating = updateData();                                // Actualiza los datos de la conexión con updateData(), principalmente para buscar el error específico que haya ocurrido en la conexión
+            std::cout<<"\nDATA UPDATED\n";
+            objectCreation();                                                 // Realiza la creación de los objetos del programa con objectCreation()
+            std::cout<<"\nOBJECTS CREATED\n";
+            currentScreen = CONFIGURATION;                                    // Cambia a la pantalla CONFIGURATION para verificar los ajustes del programa
+            loadConfig();
+            std::cout<<"\nCONFIG LOADED\n";
+            return 1;                                                         // Retorna 1, código de estado fallido
+        }
+    }
+    else
+    {
+        std::cout<<"\nINVALID IP ADDRESS\n";
+        statusCodeUpdating = updateData();                                    // Actualiza los datos de la conexión con updateData(), principalmente para buscar el error específico que haya ocurrido en la conexión
+        std::cout<<"\nDATA UPDATED\n";
+        objectCreation();                                                     // Realiza la creación de los objetos del programa con objectCreation()
+        std::cout<<"\nOBJECTS CREATED\n";
+        currentScreen = CONFIGURATION;                                        // Cambia a la pantalla CONFIGURATION para verificar los ajustes del programa
+        return 1;                                                             // Retorna 1, código de estado fallido
+    }
+    return 0;                                                                 // Retorna 0 como código de estado exitoso
 }

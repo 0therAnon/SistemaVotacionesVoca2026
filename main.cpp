@@ -1,5 +1,6 @@
 // Llamada a todas las funciones y recursos necesarios
 #include "globals.hpp"
+#include "db/database.hpp"
 #include "ui/objects.hpp"
 #include "screens/screen_logo.hpp"
 #include "screens/screen_config.hpp"
@@ -75,7 +76,8 @@ int main(void)
             littleFontSize = fontSize   / 2;                                                          // valores de los fonts
             objectCreation();   // Se llama a la funcion objectCreation() la cual se encarga de la creación de los objetos, como el tamaño de la ventana cambia, los objetos también deben de cambiar su eje x y eje y, como tamaños de ancho y alto
         }
-
+        timer++;
+        if (currentScreen != LOGO && timer > 900)  verifyConnection(currentScreen);  // Verifica la conexión con la base de datos
         // ── Backend switch ────────────────────────────────────────────────────
         switch (oldCurrentScreen)    // Busca cuál es la ventana actual
         {

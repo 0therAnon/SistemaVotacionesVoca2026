@@ -85,21 +85,24 @@ void screenAdminmenuUpdate(Screen &currentScreen,
                     backupReleased = true;                              // Informa que se realizó un backup
                     return;                                             // Retorno de la función
                 }
-                else if (resetDataPtr->status == 4)
+                else if (resetDataPtr->status == 4)                     // Si el botón para reiniciar la base de datos fue presionado...
                 {
-                    int value = 0;
-                    value += (int)sendquery(("UPDATE "s + *nameTableEstudiantes + " SET "s + *nameColumnVotoNombre + " = '0'; "s).data(),0,0,0);
-                    value += (int)sendquery(("UPDATE "s + *nameTablePartidos + " SET " + *nameColumnVotosNombre + " = '0';"s).data(),0,0,0);
-                    if ((int)value == 0)
+                    int errors = 0;                                     // Declara un entero llamado errors, el cual almacenará la suma de los códigos de estado de cada query, si ocurre un error la función sendquery devolverá un número mayor a 0
+                    errors += (int)sendquery(("UPDATE "s + *nameTableEstudiantes + " SET "s + *nameColumnVotoNombre + " = '0'; "s).data(),0,0,0);   // Suma el código de estado de sendquery() y manda la query | EXITOSO = 0 | ERROR = MAYOR A 0
+                    errors += (int)sendquery(("UPDATE "s + *nameTableEstudiantes + " SET " + *nameColumnLabsNombre + " = '0000';"s).data(),0,0,0);  // Reinicia los labs de cada estudiante, la línea anterior reiniciaba los votos de los estudiantes
+                    errors += (int)sendquery(("UPDATE "s + *nameTablePartidos + " SET " + *nameColumnVotosNombre + " = '0';"s).data(),0,0,0);       // Reinicia los votos de los partidos
+                    if ((int)errors == 0)                               // Si el valor de errors es igual a cero (es decir, ningun sendquery() devolvió un código mayor a cero) entonces procederá con la actualización de los datos
                     {
-                        updateData();
-                        objectCreation();
-                        successReset = true;
-                        return;
+                        updateData();                                   // Actualiza la información cargada de la base de datos
+                        objectCreation();                               // Vuelve a crear los objetos
+                        successReset = true;                            // Indica que el reinicio de los datos fue verdadero/exitoso
+                        return;                                         // Retorno de la función
                     }
-                    else
-                        errorReset = true;
-                        return;
+                    else                                                // En caso de que SÍ haya ocurrido un error...
+                    {
+                        errorReset = true;                              // Se indica que hubo un error al reiniciar los datos
+                        return;                                         // Retorno de la función
+                    }
                 }
                 else                                                    // Si el botón presionado no fue ni el de salir ni el de actualizar, entonces significa que fue el de entrar a la configuración, así que procederá a ejecutar lo siguiente
                 {
@@ -464,11 +467,11 @@ void screenAdminmenuUpdate(Screen &currentScreen,
             if (nullOption)                       // Si nullOption se encuentra activo, es decir, sí encontró un partido que sea la opción NULO, entonces procederá a hacer una consulta
             {
                 std::string q1 = "SELECT "s + *nameColumnVotosNombre + " FROM "s + *nameTablePartidos +                         // q1 consulta acerca de la cantidad de votos de los partidos que NO sean el partido nulo
-                                 " WHERE "s + *nameColumnPartidosNombre + " != '"s + *nameColumnNuloPartido + "';"s;
+                                 " WHERE "s + *nameColumnPartidosNombre + " != '"s + *nameNuloOpcion + "';"s;
                 sendquery(q1.data(), 0, 0);
                 strresultados = outQuery;                                                                                       // La respuesta se almacena en strresultados
                 std::string q2 = "SELECT "s + *nameColumnVotosNombre + " FROM "s + *nameTablePartidos +                         // q2 consulta acerca de la catidad de votos que tiene el partido nulo
-                                 " WHERE "s + *nameColumnPartidosNombre + " = '"s + *nameColumnNuloPartido + "';"s;
+                                 " WHERE "s + *nameColumnPartidosNombre + " = '"s + *nameNuloOpcion + "';"s;
                 sendquery(q2.data(), 0, 0);
                 strresultados += outQuery;                                                                                      // La respuesta se almacena en strresultados
             }

@@ -351,9 +351,10 @@ int objectCreation()
         "Nombre de la columna 'Nombre' de la tabla 'Partidos':",
         "Nombre de la opcion para votar nulo:",
         "Nombre de la columna 'Votos' de la tabla 'Partidos':",
-        "Nombre de la columna 'Voto' de la tabla 'Estudiantes':"
+        "Nombre de la columna 'Voto' de la tabla 'Estudiantes':",
+        "Nombre de la columna 'Laboratorio' de la tabla 'Estudiantes':"
     };
-    for (int b = 0; b < 6; b++)
+    for (int b = 0; b < 7; b++)
     {
         auto extraBar = std::make_unique<inputBar>();
         extraBar->name    = nameExtra[b];
@@ -593,7 +594,7 @@ int objectCreation()
         if (nullOption)
         {
             auto nullPartido = std::make_unique<sqlobject>();
-            nullPartido->name   = *nameColumnNuloPartido;
+            nullPartido->name   = *nameNuloOpcion;
             nullPartido->xloc   = votarPtr->xloc;
             nullPartido->yloc   = votarPtr->yloc * 0.8;
             nullPartido->xsize  = votarPtr->xsize;
