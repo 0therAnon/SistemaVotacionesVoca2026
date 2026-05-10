@@ -1,6 +1,7 @@
 // PrettyDrawRectangle and drawSelected bodies live in drawing.hpp (template functions).
 // This file contains only the non-template drawing utilities.
 #include "drawing.hpp"
+#include "../db/database.hpp"
 #include <string>
 #include <vector>
 
@@ -85,7 +86,7 @@ int logfunction(std::string selected,                                           
         GetTouchY() > outSquare[1] && GetTouchY() < outSquare[1] + outSquare[3])                    // también se verifica que se encuentre en el tamaño Y, si todo esto se cumple, se procederá a ejercer el movimiento de scroll
         add += GetMouseWheelMove();                                                                 // add almacenará el valor del scroll, GetMouseWheelMove() devuelve estado 1 si se mueve hacia arriba, y -1 si es hacia abajo
 
-    logList.reserve(possibleNL);                                                                    
+    logList.reserve(possibleNL);
 
     for (int opt = 0; opt < (int)adminButtons.size(); opt++)                                        // Se recorre todo el vector de las pestañas del panel de administración...
     {
@@ -416,56 +417,120 @@ std::vector<double> statistics(std::string mode,                          // El 
     }
 }
 
-bool alert(std::string bontonActual)
+int alert(std::string bontonActual, std::string mode)
 {
-    return true;
+    if (execConfirmation != 100)                                                      // Se verifica si es la primera vez que se llama la función, esto se puede comprobar si execConfirmation NO es igual a 100
+    {
+        warningMessage = "";                                                          // Se declara warningMessage como un string vacío
+        execConfirmation = 100;                                                       // Ahora, execConfirmation se declara 100 para no tener que pasar por todo este bloque y el bloque a continuación de nuevo
+        if (bontonActual == adminButtons[0]->name)                                    // Si la pestaña actual es "Consultar". entonces...
+        {
+            std::string alertQuery = adminButtons[0]->selfquery.substr(8);  // Crea una cadena que elimina los 8 primeros caracteres de la query original, Ej: ORIGINAL: SELECT * FROM Estudiantes WHERE... | MODIFICADA: FROM Estudiantes WHERE...
+            alertQuery.insert(0, "SELECT COUNT(*)");                        // y ahora a la cadena recien creada le agrega "SELECT COUNT(*)". Ej: En vez de decir "FROM Estudiantes WHERE..." ahora dice "SELECT COUNT(*) FROM Estudiantes WHERE..."
+            sendquery(alertQuery.data(),0,0);                               // Ejecuta la query enviando la cadena recien creada, esta cadena lo que hace es obtener la cantidad de resultados que obtendría con el SELECT original modificado
+            if (std::stoi(outQuery) <= 500)                                 // Verifica si la la cantidad es superior o igual a 500, lo cual podría llegar a ralentizar el programa
+            {
+                execConfirmation = 1;                                       // Si la cantidad NO fue superior o igual a 500, entonces no hace falta poner una advertencia, así que declara a execConfirmation como 1, indicando proceder con la query
+            }
+            else                                                            // Si la cantidad SÍ es superior a 500, entonces warningMessage lo declarará con el siguiente contenido...
+            {
+                warningMessage = "Está a punto de ejecutar una query\nque tiene como resultado "s + outQuery + " registros, lo cual puede ralentizar\n el programa, ¿seguro que desea proceder?";
+            }
+        }
+        else if (bontonActual == adminButtons[1]->name)
+        {
+            warningMessage = "Está a punto de agregar un registro más\n a la base de datos, ¿seguro que desea proceder?";
+        }
+        else if (bontonActual == adminButtons[2]->name)                     // Si la pestaña actual es "Actualizar", entonces...
+        {
+            size_t pos = adminButtons[2]->selfquery.find("WHERE");            // Buscará la posición del primer "WHERE" en la query a ejecutar
+            std::string alertQuery = adminButtons[2]->selfquery.substr(pos);  // Crea una cadena que elimina los n primeros caracteres de la query original, Ej: ORIGINAL: SELECT * FROM Estudiantes WHERE... | MODIFICADA: FROM Estudiantes WHERE...
+            alertQuery.insert(0, "SELECT COUNT(*) FROM "s + tableSelected  + " "s); // ahora a la cadena recien creada le agrega "SELECT COUNT(*)". Ej: En vez de decir "FROM Estudiantes WHERE..." ahora dice "SELECT COUNT(*) FROM Estudiantes WHERE..."
+            std::cout<<alertQuery<<"\n";
+            sendquery(alertQuery.data(),0,0);                               // Ejecuta la query enviando la cadena recien creada, esta cadena lo que hace es obtener la cantidad de resultados que obtendría con el SELECT original modificado
+            warningMessage = "Está a punto de ejecutar una query\nque actualizará "s + outQuery + " registros,\n¿seguro que desea proceder?";
+        }
+        else if (bontonActual == adminButtons[3]->name)       // Si la pestaña actual es "Borrar", entonces...
+        {
+            std::string alertQuery = adminButtons[3]->selfquery.substr(6);  // Crea una cadena que elimina los 6 primeros caracteres de la query original, Ej: ORIGINAL: DELETE FROM Estudiantes WHERE... | MODIFICADA: FROM Estudiantes WHERE...
+            alertQuery.insert(0, "SELECT COUNT(*)");                        // y ahora a la cadena recien creada le agrega "SELECT COUNT(*)". Ej: En vez de decir "FROM Estudiantes WHERE..." ahora dice "SELECT COUNT(*) FROM Estudiantes WHERE..."
+            sendquery(alertQuery.data(),0,0);                               // Ejecuta la query enviando la cadena recien creada, esta cadena lo que hace es obtener la cantidad de resultados que obtendría con el DELETE original modificado
+            warningMessage = "Está a punto de ejecutar una query\nque eliminará "s + outQuery + " registros,\n¿seguro que desea proceder?";
+        }
+    }
+    if (mode == "backend")                                                  // Si el modo es "backend"...
+    {
+        btnSiPtr->status = isPressed(btnSiPtr);                             // la función isPressed() estará pendiente de que los botones sean presionados y verificar su estado,
+        btnNoPtr->status = isPressed(btnNoPtr);                             // además de que son los únicos botones que chequea debido a modificaciones en la función isPressed(), recomiendo chequear la línea 22 en ui/input.hpp
+
+        if (btnSiPtr->status == 4)                                          // En caso de que el botón "SI" sea presionado...
+            execConfirmation = 1;                                           // Declarará a execConfirmation en 1, lo cual indicará la ejecución de la query
+        else if (btnNoPtr->status == 4)                                     // En caso de que el botón "NO" sea presinoado...
+            execConfirmation = -1;                                          // Declarará a execConfirmation en -1, lo cual indicará la cancelacion de la query
+    }
+    else
+    {
+        btnSiPtr->status = isPressed(btnSiPtr);                             // Se vuelve a verificar
+        btnNoPtr->status = isPressed(btnNoPtr);                             // el estado de los botones...
+
+        DrawRectangle(warn[0], warn[1], warn[2], warn[3], VOCAAMARILLOSUAVE);     // Se dibuja el cuadro de advertencia
+        DrawRectangleLines(warn[0], warn[1], warn[2], warn[3], NEGRO);            // Además de líneas decorativas del cuadro
+        DrawTextEx(fontTtf, warningMessage.data(), (Vector2){warn[0]*1.1,         // Y el texto de advertencia
+                                                             warn[1]*1.1}, littleFontSize, 2, NEGRO);
+
+        PrettyDrawRectangle(btnSiPtr);                                      // Luego se proceden a dibujar los
+        PrettyDrawRectangle(btnNoPtr);                                      // botones de las opciones SI y NO
+        DrawTextEx(fontTtf, btnSiPtr->name.data(), (Vector2){btnSiPtr->xloc+(btnSiPtr->xsize*0.2), btnSiPtr->yloc*1.01}, littleFontSize, 2, NEGRO);
+        DrawTextEx(fontTtf, btnNoPtr->name.data(), (Vector2){btnNoPtr->xloc+(btnNoPtr->xsize*0.2), btnNoPtr->yloc*1.01}, littleFontSize, 2, NEGRO);
+    }
+    return 0;         // Esta función siempre retorna 0
 }
 
 int transition(std::string mode)
 {
-    alphaIsZero = true;
-    alphaIsFull = true;
-    if (mode == "hide")
+    alphaIsZero = true;                                       // Las variables alpha* son las que verifican si la transparencia de los colores está completamente a un valor de 255 o a un valor de cero,
+    alphaIsFull = true;                                       // alphaIsZero es verdadero cuando alpha es cero, cuando los valores alpha son 255 alphaIsFull es verdadero, siempre inician verdaderos en la función, pero luego cambian
+    if (mode == "hide")                                       // Si el modo es "hide", significa que los colores empezarán a desaparecer
     {
-        alphaIsFull = false;
-        if (GRIS.a > 0)
-            GRIS.a = GRIS.a - 15;
-        EndDrawing();         // Reiniciar el dibujado terminando
-        BeginDrawing();       // y volviendolo a iniciar, para que el frontend se actualice a los cambios de los colores
+        alphaIsFull = false;                                  // Como los colores están desaparenciendo, alphaIsFull automáticamente es falso
+        if (GRIS.a > 0)                                       // GRIS es el color del sombreado de algunos botones, este color debe de oscurecerse más rápido que los demás, por que al los demás tener transparencia se verá un cuadro oscuro
+            GRIS.a = GRIS.a - 15;                             // GRIS como debe de oscurecerse rápido, disminuye cada 15 por frame
+        EndDrawing();                                         // Reiniciar el dibujado terminando
+        BeginDrawing();                                       // y volviendolo a iniciar, para que el frontend se actualice a los cambios de los colores
         if (darkMode)                                         // Si el modo oscuro está activo...
             ClearBackground({45, 45, 48, 255});               // Limpia el background y lo "pinta" de un color oscuro
         else                                                  // Si el modo oscuro NO está activo
             ClearBackground({250, 244, 228, 255});            // Limpia el background y lo "pinta" de un color claro
     }
-    for (int color = 0; color < (int)size(colorsVec); color++)
+    for (int color = 0; color < (int)size(colorsVec); color++)          // Este bucle recorre todos los colores del vector colorsVec, el cual contiene todos los colores del programa
     {
-        if (mode == "hide")
+        if (mode == "hide")                                             // Se vuelve a verificar si el modo es "hide" para ver si los colores deben de irse oscuriendo, en caso de que sí entonces...
         {
-            if ((int)colorsVec[color]->a != 0)
+            if ((int)colorsVec[color]->a != 0)                          // Mientras el valor alpha de los colores NO sea cero, procederá al bloque de código a continuación
             {
-                colorsVec[color]->a = (int)colorsVec[color]->a - 3;
-                alphaIsZero = false;
+                colorsVec[color]->a = (int)colorsVec[color]->a - 3;     // Si los valores de alpha no son ceros, resta 3 al valor que tenía
+                alphaIsZero = false;                                    // e indica que alpha aún NO es cero
             }
         }
-        else if (mode == "show")
+        else if (mode == "show")                                        // En caso de que el modo es "show", significa que los colores deben de empezar a mostrarse, entonces...
         {
-            if ((int)colorsVec[color]->a != 255)
+            if ((int)colorsVec[color]->a != 255)                        // En caso de que el alpha de los colores NO sea igual a 255, entonces...
             {
-                colorsVec[color]->a = (int)colorsVec[color]->a + 3;
-                alphaIsFull = false;
+                colorsVec[color]->a = (int)colorsVec[color]->a + 3;     // Procederá a aumentar 3 al valor actual de cada color en alpha
+                alphaIsFull = false;                                    // e indica que alpha aún NO es 255
             }
         }
 
     }
-    if (mode == "show")
+    if (mode == "show")                                                 // Fuera del bucle se verifica específicamente si el modo es "show", para manipular a GRIS
     {
-        alphaIsZero = false;
-        if (GRIS.a < 255 && alphaIsFull)
+        alphaIsZero = false;                                            // Además de que se indica que alpha NO es cero por obvias razones
+        if (GRIS.a < 255 && alphaIsFull)                                // Si el alpha de GRIS aún NO supera a 255 y alpha SÍ vale 255, es decir, ya ningun color tiene transparencia, entonces...
         {
-            GRIS.a = GRIS.a + 15;
+            GRIS.a = GRIS.a + 15;                                       // Procederá a sumar rápidamente el valor alpha de GRIS, para devolverle las sombras a los botones y barras que lo usan
         }
     }
-    if (alphaIsZero) return -1;
-    else if (alphaIsFull) return 1;
-    return 0;
+    if (alphaIsZero) return -1;                 // La función devuelve un código de estado -1 en caso de que el alpha de todos los colores sea 0
+    else if (alphaIsFull) return 1;             // La función devuelve un código de estado 1 en caso de que el alpha de todos los colores sea 255
+    return 0;                                   // En caso de que ninguna de los dos if anteriores se cumplan, simplemente devuelve 0
 }

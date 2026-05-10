@@ -92,6 +92,7 @@ std::string backupRetString   = "";     // Variable que almacena el string de re
 std::string partidoSelected   = "";     // Variable que almacena el partido seleccionado por el estudiante en la pantalla VOTATION
 std::string configSelected    = "";     // Variable que almacena la pestaña actual de la pantalla CONFIGURATION
 std::string pdfErrorString    = "";     // Variable que almacena el string de error en caso de un error con la función inform() que se encuentra en el archivo ./reports/inform.cpp
+std::string warningMessage    = "";     // Es el mensaje que aparecerá gracias a la función alert()
 std::string tableSelected     = "";     // Variable que almacena la tabla seleccionada actualmente
 std::string adminSelected     = "";     // Variable que almacena la pestaña actual del panel de administración
 std::string butnames[7]       = {};     // Lista que almacena 7 valores, los cuales son los nombres de las pestañas de la ventana de administración ("Consultar", "Agregar"...)
@@ -111,6 +112,7 @@ float outSquare[4];         // Lista que guardará ubicacion en el eje x, ubicac
 float screenHeight;         // Valor del tamaño de alto de la ventana
 float screenWidth;          // Valor del tamaño de ancho de la ventana
 float fontSize;             // Tamaño del font del programa
+float warn[4];              // Lista que almacena eje X, eje Y, alto y ancho del cuadro de advertencia que se muestra en el panel de administración siempre que se hace una query en la pestaña Actualizar, Agregar y Borrar
 
 bool adminAuthenticated = false;  // Verifica si el administrador fue autenticado en la pestaña "Terminal" del panel de administración
 bool backupReleased     = false;  // Verifica si se realizó un backup
@@ -128,6 +130,7 @@ bool showBeam           = true;   // Verifica si la línea de la barra de entrad
 
 int statusCodeUpdating  = 100;  // Es la variable que almacenará el número de retorno de la función updateData(), cada número especifica un error distinto en la función o si todo funcionó correctamente
 int intentosRestantes   = 3;    // Verifica cuántas veces se intentó autenticar el administrador
+int execConfirmation    = 0;    // Verifica si se ejecuta la query solicitada en la pestaña de administración correspondiente, está relacionada a la función alert()
 int statusCodeConfig    = 0;    // Verifica el código de estado de la configuración
 int columnSelected      = 0;    // Almacena el id de la columna seleccionada
 int framesCounter       = 0;    // Almacena la cantidad de tiempo en FPS, aumenta por medio de un bucle, mientras más aumente más cantidad de tiempo ha pasado
@@ -190,3 +193,5 @@ button*    refreshPtr           = nullptr;
 button*    backupPtr            = nullptr;
 button*    cedulaPtr            = nullptr;
 button*    votarPtr             = nullptr;
+button*    btnSiPtr             = nullptr;
+button*    btnNoPtr             = nullptr;

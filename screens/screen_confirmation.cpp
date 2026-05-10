@@ -21,7 +21,6 @@ void screenConfirmationUpdate(Screen& currentScreen,      // Necesita la variabl
         {
             cedulaBarPtr->status = 4;         // El estado de la barra de datos de entrada que recibe la cédula, se activa al nombrar su estado igual a 4
             cedulaPtr->selfquery  = "SELECT * FROM Estudiantes WHERE Cedula = '";       // Se reinicia la query del botón cedula
-            regresarPtr->xloc     = cedulaPtr->xloc * 0.7;                              // El valor del botón regresar se reinicia a su valor original
             continuarPtr->status = 0;                                                   // Se resetea el estado de continuar para que no aparezca resaltado al volver a MAINMENU
             regresarPtr->status  = 0;                                                   // Se resetea el estado de regresar también por la misma razón
             currentScreen = MAINMENU;                                                   // Y ahora la pantalla actual se modifica a MAINMENU, para que el siguiente frame la pantalla sea la del menú principal
@@ -86,7 +85,7 @@ void screenConfirmationDraw(Screen &currentScreen,
                             const std::string& studentName)     // Y necesita el nombre del estudiante
 {
     if (currentScreen == CONFIRMATION) transition("show");
-    if (!correctstudent && existstudent || partidoSelected.empty())     // Si NO se ha confirmado de que el estudiante sea el correcto pero el estudiante SÍ existe o ya se verificó y la siguiente pantalla será NO será VOTATION
+    if (!correctstudent && existstudent || existstudent && partidoSelected.empty())     // Si NO se ha confirmado de que el estudiante sea el correcto pero el estudiante SÍ existe o ya se verificó y la siguiente pantalla será NO será VOTATION
     {
         DrawTextEx(fontTtf, "Verifique si su nombre es correcto:"s.data(),                                                      // Mostrará un mensaje para decirle al estudiante que confirme su nombre
                    (Vector2){(float)centertext("Verifique si su nombre es correcto:"s, screenWidth, fontSize),
@@ -147,7 +146,11 @@ void screenConfirmationDraw(Screen &currentScreen,
     }
     if (currentScreen != CONFIRMATION && alphaIsZero == false)
     {
-        if (transition("hide") == -1) partidoSelected = "";
+        if (transition("hide") == -1)             // Se usa el código de estado de transition() para verificar cuando ya definitivamente los objetos no se ven, para que el usuario no vea que un objeto o un valor cambió de repente
+        {
+            partidoSelected = "";                                                       // Se reinicia el valor de partidoSelected
+            regresarPtr->xloc     = cedulaPtr->xloc * 0.7;                              // El valor del botón regresar se reinicia a su valor original
+        }
         screenConfirmationDraw(currentScreen, existstudent, correctstudent, studentName);
     }
 }

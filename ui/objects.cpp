@@ -41,6 +41,12 @@ int objectCreation()
     colorsVec.push_back(&BLANCO);
     colorsVec.push_back(&COLORTEXTO);
 
+    // warn es el cuadro de advertencia para cada vez que se ejecuta una query en la pestaña Agregar, Actualizar y Borrar en el panel de administración
+    warn[0] = screenWidth / 3;                            // Declaro la ubicación en el eje X de la pantalla para posicionar el cuadro
+    warn[1] = screenHeight * 0.30f;                       // Ubicación del eje Y
+    warn[2] = (screenWidth  - warn[0]) * 0.5f;            // Declaro el tamaño en el eje X del cuadro
+    warn[3] = (screenHeight - warn[1]) * 0.5f;            // Tamaño en eje Y
+
     // explorarSquare es el cuadro de fondo de la pestaña "Explorar" del panel de administracion, aquí defino las dimensiones del cuadro
     explorarSquare[0] = screenWidth  * 0.12;
     explorarSquare[1] = screenHeight * 0.24;
@@ -189,6 +195,26 @@ int objectCreation()
     votar->selfquery = "UPDATE "s + *nameTableEstudiantes + " SET "s + *nameColumnVotoNombre + " = '"s;
     votarPtr = votar.get();
     adminObj.push_back(std::move(votar));
+
+    auto btnSi = std::make_unique<button>();
+    btnSi->name   = "SI";
+    btnSi->xloc   = ((warn[0]+warn[2]) / 3) + warn[0]/2 - (screenWidth * 0.01);            // Declaro la ubicación en el eje X del botón para seleccionar "SI"
+    btnSi->yloc   = (warn[1]+warn[3]) * 0.9;                                               // Ubicación en eje Y
+    btnSi->xsize  = screenWidth * 0.02;                                                    // Tamaño eje X
+    btnSi->ysize  = screenWidth * 0.02;                                                    // Tamaño eje Y
+    btnSi->status = 0;
+    btnSiPtr = btnSi.get();
+    adminObj.push_back(std::move(btnSi));
+
+    auto btnNo = std::make_unique<button>();
+    btnNo->name   = "NO";
+    btnNo->xloc   = ((warn[0]+warn[2]) / 1.5) + warn[0]/2 - (screenWidth * 0.01);          // Declaro la ubicación en el eje X del botón para seleccionar "NO"
+    btnNo->yloc   = (warn[1]+warn[3]) * 0.9;                                               // Ubicación en eje Y
+    btnNo->xsize  = screenWidth * 0.02;                                                    // Tamaño eje X
+    btnNo->ysize  = screenWidth * 0.02;                                                    // Tamaño eje Y
+    btnNo->status = 0;
+    btnNoPtr = btnNo.get();
+    adminObj.push_back(std::move(btnNo));
 
     // continuar button
     auto continuar = std::make_unique<button>();

@@ -46,7 +46,7 @@ void screenAdminmenuUpdate(Screen &currentScreen,
         refreshPtr->status          = isPressed(refreshPtr);             // o ingresar a la pantalla CONFIGURATION
         cambiarFrontendPtr->status  = isPressed(cambiarFrontendPtr);     // o cambiar el modo del frontend
         backupPtr->status           = isPressed(backupPtr);              // o ejecutar un backup
-        resetDataPtr->status        = isPressed(resetDataPtr);              // o ejecutar un backup
+        resetDataPtr->status        = isPressed(resetDataPtr);           // o reiniciar la base de datos
 
         if (exitAdminPtr->status == 4 ||
             enterConfigPtr->status == 4 ||
@@ -184,22 +184,35 @@ void screenAdminmenuUpdate(Screen &currentScreen,
             {
                 if (columnsVec[co]->fromTable == tableSelected)               // Si la columna que se está recorriendo desde el bucle for padre es de la tabla actual, entonces...
                 {
+                    if (execConfirmation == 100)                              // Llega a este if si aún se está confirmando realizar la query
+                        alert(adminSelected, "backend");
+                    else if (execConfirmation == 1)                           // Llega a este if si SÍ SE CONFIRMA la query
+                    {
+                        if (adminButtons[0]->outLog != "") {adminButtons[0]->outLog += "\n";}     // Si el valor de outLog NO está vacío, se le agregará un newline, esto por pura estética con la función logfunction() de ui/drawing.cpp
+                        adminButtons[0]->outLog += adminButtons[0]->selfquery + ";\n"s;           // Ahora, al outLog, se le agrega la query que se armó para enviar a la base de datos
+                        sendquery(adminButtons[0]->selfquery.data(), 0, 0, 1, " | ");             // Se procede a enviar la query, y se pide como separador entre las columnas al símbolo pipe |
+                        adminButtons[0]->outLog    += outQuery;                                   // Se le agrega al outLog del botón actual la respuesta de la query
+                        adminButtons[0]->selfquery  = "SELECT * FROM "s + tableSelected + " WHERE "s;       // Se reinicia la query de la pestaña "Consultar", esto para prepararse en caso de otra query
+                        conCnt = 0;                                                                         // Reinicia el contador a cero
+                        execConfirmation = 0;                                                           // Se reinicia el valor de execConfirmation para volver a ejecutar otra confirmación en caso de ser necesario
+                    }
+                    else if (execConfirmation == -1)                          // Llega a este if si se desea cancelar la query
+                    {
+                        adminButtons[0]->selfquery  = "SELECT * FROM "s + tableSelected + " WHERE "s;       // Se reinicia la query de la pestaña "Consultar", esto para prepararse en caso de otra query
+                        conCnt = 0;                                                                         // Reinicia el contador a cero
+                        execConfirmation = 0;
+                    }
                     if (IsKeyPressed(KEY_ENTER))                              // Si se presiona la tecla ENTER, procederá a realizar la query
                     {
                         conCnt++;                                             // Aumenta el contador de "Consultar"
                         adminButtons[0]->selfquery += columnsVec[co]->name + " REGEXP '"s + columnsVec[co]->input + "'"s;   // Empieza a armar la query, introduciendo el nombre de la columna actual, la palabra "REGEXP" y su valor a buscar
-                        if (conCnt < quancolumns)                   // Si el contador es menor a la cantidad de columnas actuales (quancolumns es la variable global que almacena las columnas de la tabla actual) entonces agregará un AND
-                        {                                           // Esto sirve para saber si la columna actual es la última o no
+                        if (conCnt < quancolumns)                             // Si el contador es menor a la cantidad de columnas actuales (quancolumns es la variable global que almacena las columnas de la tabla actual) entonces agregará un AND
+                        {                                                     // Esto sirve para saber si la columna actual es la última o no
                             adminButtons[0]->selfquery += " AND ";            // Se le agrega un AND para en el siguiente recorrido del bucle for padre, se almacene la siguiente columna
                         }
                         else                                                  // En caso de el contador SÍ iguale a la cantidad de columnas actuales...
                         {
-                            if (adminButtons[0]->outLog != "") {adminButtons[0]->outLog += "\n";}     // Si el valor de outLog NO está vacío, se le agregará un newline, esto por pura estética con la función logfunction() de ui/drawing.cpp
-                            adminButtons[0]->outLog += adminButtons[0]->selfquery + ";\n"s;           // Ahora, al outLog, se le agrega la query que se armó para enviar a la base de datos
-                            sendquery(adminButtons[0]->selfquery.data(), 0, 0, 1, " | ");             // Se procede a enviar la query, y se pide como separador entre las columnas al símbolo pipe |
-                            adminButtons[0]->outLog    += outQuery;                                   // Se le agrega al outLog del botón actual la respuesta de la query
-                            adminButtons[0]->selfquery  = "SELECT * FROM "s + tableSelected + " WHERE "s;       // Se reinicia la query de la pestaña "Consultar", esto para prepararse en caso de otra query
-                            conCnt = 0;       // Reinicia el contador a cero
+                            alert(adminSelected, "backend");                  // Llamará a la función alert(), para verificar si es necesario una advertencia
                         }
                     }
                 }
@@ -209,6 +222,26 @@ void screenAdminmenuUpdate(Screen &currentScreen,
             {
                 if (columnsVec[co]->fromTable == tableSelected)             // Si la columna que se está recorriendo desde el bucle for padre es de la tabla actual, entonces...
                 {
+                    if (execConfirmation == 100)                              // Llega a este if si aún se está confirmando realizar la query
+                        alert(adminSelected, "backend");
+                    else if (execConfirmation == 1)                           // Llega a este if si SÍ SE CONFIRMA la query
+                    {
+                        if (adminButtons[1]->outLog != "") adminButtons[1]->outLog += "\n";       // Si outLog NO está vacío, se le agrega un newline, esto para razones de estética
+                        adminButtons[1]->outLog    += adminButtons[1]->selfquery + ";\n"s;        // Se le agrega la query ya armada al outLog de la pestaña "Agregar"
+                        sendquery(adminButtons[1]->selfquery.data(), 0, 0, 2);                    // Se envía la query
+                        adminButtons[1]->outLog    += outQuery;                                   // Se introduce el resultado de la query a outLog, para visualizar la información de respuesta de la base de datos
+                        adminButtons[1]->selfquery  = "INSERT INTO "s + tableSelected + " (";     // Se reinicia la query de la pestaña "Agregar", esto para prepararse para otra futura query
+                        agrCnt = 0;       // Reinicia el contador a cero
+                        updateData();                                                             // Se actualiza la información, ya que fue modificada
+                        objectCreation();                                                         // Se vuelven a crear los objetos, pero solo los relacionados a la base de datos
+                        execConfirmation = 0;                                                           // Se reinicia el valor de execConfirmation para volver a ejecutar otra confirmación en caso de ser necesario
+                    }
+                    else if (execConfirmation == -1)                          // Llega a este if si se desea cancelar la query
+                    {
+                        adminButtons[1]->selfquery  = "INSERT INTO "s + tableSelected + " (";     // Se reinicia la query de la pestaña "Agregar", esto para prepararse para otra futura query
+                        agrCnt = 0;       // Reinicia el contador a cero
+                        execConfirmation = 0;                                                           // Se reinicia el valor de execConfirmation para volver a ejecutar otra confirmación en caso de ser necesario
+                    }
                     if (IsKeyPressed(KEY_ENTER))                            // Si se presiona la tecla ENTER, procederá a realizar la query
                     {
                         if (agrCnt < quancolumns)                           // Si el contador de la pestaña "Agregar" es menor a la cantidad de columnas de la tabla actual, es decir, no es la última columna de la tabla actual
@@ -223,14 +256,7 @@ void screenAdminmenuUpdate(Screen &currentScreen,
                             agregarCol += ") VALUES ('";                    // Al string agregarCol se le agregará ") VALUES (", esto para unir este string con agregarVal en la query
                             agregarVal += "')";                             // agregarVal finaliza su contenido
                             adminButtons[1]->selfquery += agregarCol + agregarVal;                    // Ahora, se unirán los strings para armar la query
-                            if (adminButtons[1]->outLog != "") adminButtons[1]->outLog += "\n";       // Si outLog NO está vacío, se le agrega un newline, esto para razones de estética
-                            adminButtons[1]->outLog    += adminButtons[1]->selfquery + ";\n"s;        // Se le agrega la query ya armada al outLog de la pestaña "Agregar"
-                            sendquery(adminButtons[1]->selfquery.data(), 0, 0, 2);                    // Se envía la query
-                            adminButtons[1]->outLog    += outQuery;                                   // Se introduce el resultado de la query a outLog, para visualizar la información de respuesta de la base de datos
-                            adminButtons[1]->selfquery  = "INSERT INTO "s + tableSelected + " (";     // Se reinicia la query de la pestaña "Agregar", esto para prepararse para otra futura query
-                            agrCnt = 0;       // Reinicia el contador a cero
-                            updateData();                                                             // Se actualiza la información, ya que fue modificada
-                            objectCreation();                                                         // Se vuelven a crear los objetos, pero solo los relacionados a la base de datos
+                            alert(adminSelected, "backend");
                         }
                     }
                 }
@@ -278,7 +304,7 @@ void screenAdminmenuUpdate(Screen &currentScreen,
                         opc->type   = columnsVec[co]->type;                                             // Su tipo de dato será el mismo que el de la columna correspondiente
                         opc->maxlen = std::stoi(columnsVec[co]->maxlen);                                // Su tamaño máximo de datos de entrada será el mismo que el de la columna correspondiente
                         opc->id     = columnsVec[co]->id;                                               // Su id será el mismo que el de la columna correspondiente
-                        opc->normalColor = &BLANCO;                             // Fondo blanco en reposo para que sea consistente con el botón principal del desplegable
+                        opc->normalColor = &BLANCO;                                                     // Fondo blanco en reposo para que sea consistente con el botón principal del desplegable
                         opcionesAct.push_back(opc.get());                                               // El objeto se empuja a opcionesAct
                         adminObj.push_back(std::move(opc));                                             // Su puntero se almacena en adminObj
                     }
@@ -320,21 +346,37 @@ void screenAdminmenuUpdate(Screen &currentScreen,
                                                          //littleFontSize, BLANCO);                // si no me explico bien, descomente esta línea y comente las dos anteriores, vaya a la pestaña "Actualizar" y escriba/borre/muevase en actBar
                             if (actBarPtr->status == 4 && modeInput == "boolean") {break;}        // Si el estado es 4 y es booleano debe de romper el bucle, ya que si no se rompe, inputfunc() recibirá esto muchas veces, y cambiará mucho su valor
 
+                        if (execConfirmation == 100)                              // Llega a este if si aún se está confirmando realizar la query
+                            alert(adminSelected, "backend");
+                        else if (execConfirmation == 1)                           // Llega a este if si SÍ SE CONFIRMA la query
+                        {
+                            if (adminButtons[2]->outLog != "") adminButtons[2]->outLog += "\n";             // Si outLog no está vacío, agregará un newline por pura estética
+                            adminButtons[2]->outLog += adminButtons[2]->selfquery + ";\n"s;                 // Se le agrega a outLog la query ya armada
+                            sendquery(adminButtons[2]->selfquery.data(), 0, 0, 2);                          // Se envía la query
+                            adminButtons[2]->outLog    += outQuery;                                         // El resultado de la query se introduce en outLog para mostrarlo en el frontend
+                            adminButtons[2]->selfquery  = "UPDATE "s + tableSelected + " SET "s;            // Se reinicia la query de la pestaña "Actualizar" para prepararse en caso de una query nueva
+                            actCnt = 0;                                                                     // Se reinicia el contador
+                            updateData();                                                                   // Se actualiza la información, ya que fue modificada
+                            objectCreation();                                                               // Se vuelven a crear los objetos, pero solo los relacionados a la base de datos
+                            execConfirmation = 0;                                                           // Se reinicia el valor de execConfirmation para volver a ejecutar otra confirmación en caso de ser necesario
+                        }
+                        else if (execConfirmation == -1)
+                        {
+                            adminButtons[2]->selfquery  = "UPDATE "s + tableSelected + " SET "s;            // Se reinicia la query de la pestaña "Actualizar" para prepararse en caso de una query nueva
+                            actCnt = 0;                                                                     // Se reinicia el contador
+                            execConfirmation = 0;
+                        }
                         if (IsKeyPressed(KEY_ENTER) && !actBarPtr->input.empty())                 // Si se presiona ENTER y actBar no se encuentra vacío...
                         {
                             actCnt++;               // actCnt empieza a sumarse
                             adminButtons[2]->selfquery += columnsVec[co]->name + " REGEXP '"s + columnsVec[co]->input + "'"s;     // Empieza a armar la query
-                            if (actCnt < quancolumns) adminButtons[2]->selfquery += " AND ";                    // Si la columna actual NO es la última en el bucle for padre, entonces agregará un AND
+                            if (actCnt < quancolumns)
+                            {
+                                adminButtons[2]->selfquery += " AND ";                    // Si la columna actual NO es la última en el bucle for padre, entonces agregará un AND
+                            }
                             else                                                                                // Si SÍ es la última, no agregará un AND, y entonces...
                             {
-                                if (adminButtons[2]->outLog != "") adminButtons[2]->outLog += "\n";             // Si outLog no está vacío, agregará un newline por pura estética
-                                adminButtons[2]->outLog += adminButtons[2]->selfquery + ";\n"s;                 // Se le agrega a outLog la query ya armada
-                                sendquery(adminButtons[2]->selfquery.data(), 0, 0, 2);                          // Se envía la query
-                                adminButtons[2]->outLog    += outQuery;                                         // El resultado de la query se introduce en outLog para mostrarlo en el frontend
-                                adminButtons[2]->selfquery  = "UPDATE "s + tableSelected + " SET "s;            // Se reinicia la query de la pestaña "Actualizar" para prepararse en caso de una query nueva
-                                actCnt = 0;   // Se reinicia el contador
-                                updateData();                                                                   // Se actualiza la información, ya que fue modificada
-                                objectCreation();                                                               // Se vuelven a crear los objetos, pero solo los relacionados a la base de datos
+                                alert(adminSelected, "backend");                  // Llamará a la función alert(), para verificar si es necesario una advertencia
                             }
                         }
                     }
@@ -346,21 +388,37 @@ void screenAdminmenuUpdate(Screen &currentScreen,
             {
                 if (columnsVec[co]->fromTable == tableSelected)   // Verifica que la columna del bucle padre perteneza a la tabla seleccionada
                 {
-                    if (IsKeyPressed(KEY_ENTER))                  // Si se presiona la tecla ENTER...
+                    if (execConfirmation == 100)                              // Llega a este if si aún se está confirmando realizar la query
+                        alert(adminSelected, "backend");
+                    else if (execConfirmation == 1)                           // Llega a este if si SÍ SE CONFIRMA la query
                     {
-                        borCnt++;                                 // Aumenta un valor al contador
+                        if (adminButtons[3]->outLog != "") adminButtons[3]->outLog += "\n";               // Agrega un newline al outLog de "Borrar", por pura estética
+                        adminButtons[3]->outLog    += adminButtons[3]->selfquery + ";\n"s;                // Agrega la query ya armada
+                        sendquery(adminButtons[3]->selfquery.data(), 0, 0, 2);                            // Se envía la query
+                        adminButtons[3]->outLog    += outQuery;                                           // Se almacena el resultado de la query dentro de outLog, para ver la respuesta en el frontend
+                        adminButtons[3]->selfquery  = "DELETE FROM "s + tableSelected + " WHERE "s;       // Se reinicia la query de la pestaña "Borrar", esto para prepararse en caso de una futura query
+                        borCnt = 0;                                                                       // Se reinicia el contador
+                        updateData();                                                                     // Se actualiza la información, ya que fue modificada
+                        objectCreation();                                                                 // Se vuelven a crear los objetos, pero solo los relacionados a la base de datos
+                        execConfirmation = 0;                                                             // Se reinicia el valor de execConfirmation para volver a ejecutar otra confirmación en caso de ser necesario
+                    }
+                    else if (execConfirmation == -1)                          // Llega a este if si se desea cancelar la query
+                    {
+                        adminButtons[3]->selfquery  = "DELETE FROM "s + tableSelected + " WHERE "s;       // Se reinicia la query de la pestaña "Borrar", esto para prepararse en caso de una futura query
+                        borCnt = 0;                                                                       // Se reinicia el contador
+                        execConfirmation = 0;
+                    }
+                    if (IsKeyPressed(KEY_ENTER))                                                          // Si se presiona la tecla ENTER...
+                    {
+                        borCnt++;                                                                         // Aumenta un valor al contador
                         adminButtons[3]->selfquery += columnsVec[co]->name + " REGEXP '"s + columnsVec[co]->input + "'"s;       // Se empieza a armar la query
-                        if (borCnt < quancolumns) adminButtons[3]->selfquery += " AND ";                      // Si la columna actual en el bucle for padre NO es la última, agregará un AND a la query
-                        else                                                                                  // En caso de que sí sea la última...
+                        if (borCnt < quancolumns)
                         {
-                            if (adminButtons[3]->outLog != "") adminButtons[3]->outLog += "\n";               // Agrega un newline al outLog de "Borrar", por pura estética
-                            adminButtons[3]->outLog    += adminButtons[3]->selfquery + ";\n"s;                // Agrega la query ya armada
-                            sendquery(adminButtons[3]->selfquery.data(), 0, 0, 2);                            // Se envía la query
-                            adminButtons[3]->outLog    += outQuery;                                           // Se almacena el resultado de la query dentro de outLog, para ver la respuesta en el frontend
-                            adminButtons[3]->selfquery  = "DELETE FROM "s + tableSelected + " WHERE "s;       // Se reinicia la query de la pestaña "Borrar", esto para prepararse en caso de una futura query
-                            borCnt = 0;       // Se reinicia el contador
-                            updateData();                                                                     // Se actualiza la información, ya que fue modificada
-                            objectCreation();                                                                 // Se vuelven a crear los objetos, pero solo los relacionados a la base de datos
+                            adminButtons[3]->selfquery += " AND ";                                        // Si la columna actual en el bucle for padre NO es la última, agregará un AND a la query
+                        }
+                        else                                                                              // En caso de que sí sea la última...
+                        {
+                            alert(adminSelected, "backend");                  // Llamará a la función alert(), para verificar si es necesario una advertencia
                         }
                     }
                 }
@@ -788,6 +846,13 @@ void screenAdminmenuDraw(Screen &currentScreen,
                          mediumFontSize, invalidCredentials);
         else if (inputEmpty) shortmessage("Los datos se encuentran vacios", fontSize, inputEmpty);          // Si hay credenciales vacías, mostrará el siguiente mensaje
         else if (invalidIp)  shortmessage("La IP digitada es invalida",     fontSize, invalidIp);           // Si la IP es inválida, mostrará el siguiente mensaje
+    }
+
+    // Dibuja al cuadro de advertencia en caso de que haya alguna
+
+    if (execConfirmation == 100)
+    {
+        alert(adminSelected, "frontend");
     }
 
     // Botones en las esquinas

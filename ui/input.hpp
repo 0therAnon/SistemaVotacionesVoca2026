@@ -19,6 +19,10 @@ template<typename T> void PrettyDrawRectangle(T obj);
 
 inline int isPressed(auto& obj)
 {
+    /* En caso de que execConfirmation sea igual a 100, es decir, hay un cuadro de advertencia con la función alert() en el panel
+       entonces procederá a NO VERIFICAR EL ESTADO DE NINGUN OTRO OBJETO QUE NO SEA btnSi y btnNo, lo cual se puede apreciar en la siguiente línea*/
+    if (obj->name != btnSiPtr->name && obj->name != btnNoPtr->name && execConfirmation == 100) return 0;
+
     float xloc = obj->xloc, yloc = obj->yloc, xsize = obj->xsize, ysize = obj->ysize;
     int laststate = obj->status;
 

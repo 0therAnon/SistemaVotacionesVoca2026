@@ -81,5 +81,5 @@ std::vector<double> statistics(std::string mode, std::string outputMode,
                                std::vector<double>& dataVec,
                                std::vector<sqlobject*> partVec,
                                int posx = 0, int posy = 0);
-bool        alert(std::string botonActual);
+int         alert(std::string botonActual, std::string mode);
 int         transition(std::string mode);
