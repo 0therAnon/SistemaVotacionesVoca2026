@@ -267,7 +267,6 @@ int verifyConnection(Screen &currentScreen)
 
     if (validIP(*server))                                                     // Ahora, se verifica que la IP sea válida, si la IP llega a ser válida...
     {
-        std::cout<<"\nCORRECT IP ADDRESS\n";
         bool reconnect = 1;                                                   // Sirve para pasarle el parámetro de MYSQL_OPT_RECONNECT a mysql_options() para habilitar el ajuste
         mysql_options(conn, MYSQL_OPT_RECONNECT, &reconnect);                 // Se le pasa el argumento MYSQL_OPT_RECONNECT como parámetro a mysql_options() para indicar que se desea mantener una conexión que se reconecte en caso de pérdida
         if (!mysql_real_connect(conn, *server, *user, *password,              // Se realizará una conexión al servidor MySQL con las credenciales que se suministraron del archivo de configuración o de la pantalla CONFIGURATION
@@ -277,22 +276,16 @@ int verifyConnection(Screen &currentScreen)
             mysql_close(conn);                                                // Llama a mysql_close() para cerrar la conexión
             conn = nullptr;                                                   // Declara a conn con un puntero nulo para limpiar su contenido
             statusCodeUpdating = updateData();                                // Actualiza los datos de la conexión con updateData(), principalmente para buscar el error específico que haya ocurrido en la conexión
-            std::cout<<"\nDATA UPDATED\n";
             objectCreation();                                                 // Realiza la creación de los objetos del programa con objectCreation()
-            std::cout<<"\nOBJECTS CREATED\n";
             currentScreen = CONFIGURATION;                                    // Cambia a la pantalla CONFIGURATION para verificar los ajustes del programa
             loadConfig();
-            std::cout<<"\nCONFIG LOADED\n";
             return 1;                                                         // Retorna 1, código de estado fallido
         }
     }
     else
     {
-        std::cout<<"\nINVALID IP ADDRESS\n";
         statusCodeUpdating = updateData();                                    // Actualiza los datos de la conexión con updateData(), principalmente para buscar el error específico que haya ocurrido en la conexión
-        std::cout<<"\nDATA UPDATED\n";
         objectCreation();                                                     // Realiza la creación de los objetos del programa con objectCreation()
-        std::cout<<"\nOBJECTS CREATED\n";
         currentScreen = CONFIGURATION;                                        // Cambia a la pantalla CONFIGURATION para verificar los ajustes del programa
         return 1;                                                             // Retorna 1, código de estado fallido
     }

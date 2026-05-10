@@ -350,8 +350,8 @@ int objectCreation()
         "Nombre de la tabla 'Partidos':",
         "Nombre de la columna 'Nombre' de la tabla 'Partidos':",
         "Nombre de la opcion para votar nulo:",
-        "Nombre de la columna 'Votos' de la tabla 'Partidos':",
         "Nombre de la columna 'Voto' de la tabla 'Estudiantes':",
+        "Nombre de la columna 'Votos' de la tabla 'Partidos':",
         "Nombre de la columna 'Laboratorio' de la tabla 'Estudiantes':"
     };
     for (int b = 0; b < 7; b++)

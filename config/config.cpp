@@ -108,8 +108,8 @@ int loadConfig()    // Nombro a la función loadConfig() sin argumentos ya que n
     extraBars[1]->input32 = UTF8ToUTF32(*nameTablePartidos);          /**/              extraBars[1]->input = *nameTablePartidos;
     extraBars[2]->input32 = UTF8ToUTF32(*nameColumnPartidosNombre);   /**/              extraBars[2]->input = *nameColumnPartidosNombre;
     extraBars[3]->input32 = UTF8ToUTF32(*nameNuloOpcion);             /**/              extraBars[3]->input = *nameNuloOpcion;
-    extraBars[4]->input32 = UTF8ToUTF32(*nameColumnVotosNombre);      /**/              extraBars[4]->input = *nameColumnVotosNombre;
-    extraBars[5]->input32 = UTF8ToUTF32(*nameColumnVotoNombre);       /**/              extraBars[5]->input = *nameColumnVotoNombre;
+    extraBars[4]->input32 = UTF8ToUTF32(*nameColumnVotoNombre);       /**/              extraBars[4]->input = *nameColumnVotoNombre;
+    extraBars[5]->input32 = UTF8ToUTF32(*nameColumnVotosNombre);      /**/              extraBars[5]->input = *nameColumnVotosNombre;
     extraBars[6]->input32 = UTF8ToUTF32(*nameColumnLabsNombre);       /**/              extraBars[6]->input = *nameColumnLabsNombre;
     pathBars[0]->input32 = UTF8ToUTF32(*pathProgramFont);             /**/              pathBars[0]->input = *pathProgramFont;
     pathBars[1]->input32 = UTF8ToUTF32(*pathLogsFont);                /**/              pathBars[1]->input = *pathLogsFont;
