@@ -475,13 +475,13 @@ int alert(std::string bontonActual, std::string mode)
 
         DrawRectangle(warn[0], warn[1], warn[2], warn[3], VOCAAMARILLOSUAVE);     // Se dibuja el cuadro de advertencia
         DrawRectangleLines(warn[0], warn[1], warn[2], warn[3], NEGRO);            // Además de líneas decorativas del cuadro
-        DrawTextEx(fontTtf, warningMessage.data(), (Vector2){warn[0]*1.1,         // Y el texto de advertencia
-                                                             warn[1]*1.1}, littleFontSize, 2, NEGRO);
+        DrawTextEx(fontTtf, warningMessage.data(), (Vector2){(float)(warn[0]*1.1),         // Y el texto de advertencia
+                                                             (float)(warn[1]*1.1)}, littleFontSize, 2, NEGRO);
 
         PrettyDrawRectangle(btnSiPtr);                                      // Luego se proceden a dibujar los
         PrettyDrawRectangle(btnNoPtr);                                      // botones de las opciones SI y NO
-        DrawTextEx(fontTtf, btnSiPtr->name.data(), (Vector2){btnSiPtr->xloc+(btnSiPtr->xsize*0.2), btnSiPtr->yloc*1.01}, littleFontSize, 2, NEGRO);
-        DrawTextEx(fontTtf, btnNoPtr->name.data(), (Vector2){btnNoPtr->xloc+(btnNoPtr->xsize*0.2), btnNoPtr->yloc*1.01}, littleFontSize, 2, NEGRO);
+        DrawTextEx(fontTtf, btnSiPtr->name.data(), (Vector2){(float)(btnSiPtr->xloc+(btnSiPtr->xsize*0.2)), (float)(btnSiPtr->yloc*1.01)}, littleFontSize, 2, NEGRO);
+        DrawTextEx(fontTtf, btnNoPtr->name.data(), (Vector2){(float)(btnNoPtr->xloc+(btnNoPtr->xsize*0.2)), (float)(btnNoPtr->yloc*1.01)}, littleFontSize, 2, NEGRO);
     }
     return 0;         // Esta función siempre retorna 0
 }

@@ -28,7 +28,7 @@ inline void PrettyDrawRectangle(T obj)              // Esta función se encarga 
 
     // Sombra suave debajo del botón, desaparece al presionar para reforzar el efecto de hundimiento
     if (obj->status != 3 && obj->status != 4)
-        DrawRectangleRounded({rx + 3, ry + 4, rw, rh}, 0.4f, 0, GRIS);
+        DrawRectangleRounded({rx + 4, ry + 6, rw, rh}, 0.4f, 0, GRIS);
 
     // Cuerpo del botón con bordes en forma de píldora (0.5f)
     // Si status > 1 usa highColor (beige cálido), sino usa normalColor (beige pastel)

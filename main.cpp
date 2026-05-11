@@ -34,6 +34,10 @@ int main(void)
     fontTtf = LoadFontEx("./fonts/Inter_24pt-Regular.ttf", fontSize, 0, 250); // Es la variable que tendrá el font almacenado, busca la ruta del archivo del font a usar, se le pasa el tamaño (fontSize) como argumento
     monoTtf = LoadFontEx("./fonts/GoMonoNerdFont-Regular.ttf", fontSize, 0, 250); // Es la variable que tendrá el font almacenado, busca la ruta del archivo del font a usar, se le pasa el tamaño (fontSize) como argumento
 
+    ImageFormat(&vocaLogo, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);    // Modifico el formato del logo del Voca, esto para permitir la transparencia de la imagen en las transiciones
+    vocaLogoTexture = LoadTextureFromImage(vocaLogo);             // La imagen se convierte a textura, para que raylib la procese mejor y aplique su efecto de desaparecer
+    UnloadImage(vocaLogo);                                        // Luego, se procede a descargar la imagen vocaLogo, ya que no se necesita más
+
     // ── Per-loop state ────────────────────────────────────────────────────────
     std::string outResultsMode      = "percentages";   // Verifica si el modo de salida de la pestaña "Resultados" tiene que ser en porcentajes o sino en cantidades
     std::string explorarFinalOutput = "";   // Almacena la salida de la pestaña "Explorar" en el panel del administrador, esto luego se mostrará en el frontend

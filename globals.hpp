@@ -178,3 +178,7 @@ extern button*    cedulaPtr;
 extern button*    votarPtr;
 extern button*    btnSiPtr;
 extern button*    btnNoPtr;
+
+// ── Imágenes y texturas ───────────────────────────────────────────────────────
+extern Image vocaLogo;
+extern Texture2D vocaLogoTexture;

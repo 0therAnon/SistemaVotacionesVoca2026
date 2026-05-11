@@ -192,6 +192,8 @@ int objectCreation()
     votar->xsize     = screenWidth * 0.16;
     votar->ysize     = screenHeight * 0.1;
     votar->status    = 0;
+    votar->normalColor = &VOCAAMARILLO;
+    votar->highColor   = &VOCADORADO;
     votar->selfquery = "UPDATE "s + *nameTableEstudiantes + " SET "s + *nameColumnVotoNombre + " = '"s;
     votarPtr = votar.get();
     adminObj.push_back(std::move(votar));

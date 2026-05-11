@@ -195,3 +195,7 @@ button*    cedulaPtr            = nullptr;
 button*    votarPtr             = nullptr;
 button*    btnSiPtr             = nullptr;
 button*    btnNoPtr             = nullptr;
+
+// ── Imágenes y texturas ───────────────────────────────────────────────────────
+Image vocaLogo = LoadImage("./assets/vocaLogo.png");
+Texture2D vocaLogoTexture;
