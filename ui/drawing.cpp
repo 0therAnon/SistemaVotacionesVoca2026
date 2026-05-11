@@ -494,7 +494,7 @@ int transition(std::string mode)
     {
         alphaIsFull = false;                                  // Como los colores están desaparenciendo, alphaIsFull automáticamente es falso
         if (GRIS.a > 0)                                       // GRIS es el color del sombreado de algunos botones, este color debe de oscurecerse más rápido que los demás, por que al los demás tener transparencia se verá un cuadro oscuro
-            GRIS.a = GRIS.a - 15;                             // GRIS como debe de oscurecerse rápido, disminuye cada 15 por frame
+            GRIS.a = GRIS.a - 51;                             // GRIS como debe de oscurecerse rápido, disminuye cada 15 por frame
         EndDrawing();                                         // Reiniciar el dibujado terminando
         BeginDrawing();                                       // y volviendolo a iniciar, para que el frontend se actualice a los cambios de los colores
         if (darkMode)                                         // Si el modo oscuro está activo...
@@ -508,7 +508,7 @@ int transition(std::string mode)
         {
             if ((int)colorsVec[color]->a != 0)                          // Mientras el valor alpha de los colores NO sea cero, procederá al bloque de código a continuación
             {
-                colorsVec[color]->a = (int)colorsVec[color]->a - 3;     // Si los valores de alpha no son ceros, resta 3 al valor que tenía
+                colorsVec[color]->a = (int)colorsVec[color]->a - 15;     // Si los valores de alpha no son ceros, resta 3 al valor que tenía
                 alphaIsZero = false;                                    // e indica que alpha aún NO es cero
             }
         }
@@ -516,7 +516,7 @@ int transition(std::string mode)
         {
             if ((int)colorsVec[color]->a != 255)                        // En caso de que el alpha de los colores NO sea igual a 255, entonces...
             {
-                colorsVec[color]->a = (int)colorsVec[color]->a + 3;     // Procederá a aumentar 3 al valor actual de cada color en alpha
+                colorsVec[color]->a = (int)colorsVec[color]->a + 15;     // Procederá a aumentar 3 al valor actual de cada color en alpha
                 alphaIsFull = false;                                    // e indica que alpha aún NO es 255
             }
         }
