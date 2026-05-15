@@ -35,29 +35,45 @@ class inputBar : public nxyxys {              // Declaración de la clase inputB
     std::string    input;                     // input es la variable que muestra en el frontend los datos de entrada en UTF-8, para mas informacion acerca de codificaciones, leer platform/README.txt
     std::u32string input32;                   // input32 es la variable que maneja internamente los datos de entrada en UTF-32, para mas informacion acerca de codificaciones, leer platform/README.txt
     std::string oType     = "inputBar";       // Se declara que el tipo de objeto es un inputBar
-    Color* highColor   = &BLANCO;              // Color predeterminado cuando se resalta     | VOCADORADO
-    Color* normalColor = &BLANCO;              // Color predeterminado en su estado normal   | VOCAVERDE
+    Color* highColor   = &BLANCO;             // Color predeterminado cuando se resalta     | VOCADORADO
+    Color* normalColor = &BLANCO;             // Color predeterminado en su estado normal   | VOCAVERDE
 };
 
 class sqlobject : public nxyxys {             // Declaración de la clase sqlobject, se usa principalmente en objetos que se hayan cargado de la base de datos SQL, como tablas, pero no columnas, las columnas tienen su propio objeto
   public:
     void vincular() const override {}
     int maxlen;                               // Declara el tamaño máximo de datos de entrada, esto puede variar
-    std::string type;                         // Declara el tipo de objeto en caso de que tenga tipo
     int id;                                   // Declara el identificador del objeto en caso de que tenga que necesitar uno
+    std::string type;                         // Declara el tipo de objeto en caso de que tenga tipo
     std::string oType     = "sqlobject";      // Se declara que el tipo de objeto es "sqlobject"
 };
 
 class column : public nxyxys {                // Declaración de la clase column, esta almacena columnas cargadas desde la base de datos, es la que más propiedades tiene
   public:
     void vincular() const override {}
+    int id;                                   // Número para identificar la columna
     std::string  fromTable;                   // Especifica de cual tabla proviene la columna actual
     std::string   input;                      // input es la variable que muestra en el frontend los datos de entrada en UTF-8
     std::u32string input32;                   // input32 es la variable que maneja internamente los datos de entrada en UTF-32
     std::string  type;                        // Almacena el tipo de dato a introducir en la columna, es decir, si en la base de datos se carga de que la columna es de tipo int, la columna solo admitirá datos de tipo entero
     std::string  maxlen;                      // Almacena la cantidad máxima de datos a introducir, es decir, si en la base de datos se asigna un límite de 50 carácteres para almacenar, entonces solo se podrán escribir 50 carácteres
-    int id;
     std::string oType = "column";
-    Color* highColor   = &BLANCO;                // Color predeterminado cuando se resalta     | VOCADORADO
-    Color* normalColor = &BLANCO;                // color predeterminado en su estado normal   | VOCAVERDE
+    Color* highColor   = &BLANCO;             // Color predeterminado cuando se resalta     | VOCADORADO
+    Color* normalColor = &BLANCO;             // color predeterminado en su estado normal   | VOCAVERDE
+};
+
+class parties : public nxyxys {
+  public:
+    void vincular() const override {}
+    float flagxloc;
+    float flagyloc;
+    float flagxsize;
+    float flagysize;
+    Texture2D president;                      // Presidente del partido
+    Texture2D flag;                           // Bandera del partido
+    Texture2D logo;                           // Logo del partido
+    Color linesColor;                         // Bordes de los botones del partido
+    Color mainColor;                          // Color del botón cuando esta presionado
+    Color subColor;                           // Color del botón cuando el cursor está encima
+    Color fadeColor;                          // Color del botón cuando no está presionado
 };

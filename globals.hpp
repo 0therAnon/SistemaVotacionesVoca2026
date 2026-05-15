@@ -112,6 +112,7 @@ extern bool showBeam;
 extern bool pdfError;
 
 extern int statusCodeUpdating;
+extern int statusCodeCreating;
 extern int intentosRestantes;
 extern int execConfirmation;
 extern int statusCodeConfig;
@@ -143,18 +144,17 @@ extern jmp_buf env;
 #include "ui/widgets.hpp"
 
 extern std::vector<std::unique_ptr<nxyxys>> adminObj;
-extern std::vector<sqlobject*> partidosVec;
 extern std::vector<sqlobject*> opcionesAct;
-extern std::vector<button*>    configbuttons;
 extern std::vector<sqlobject*> tablesVec;
 extern std::vector<inputBar*>  termBars;
 extern std::vector<inputBar*>  extraBars;
 extern std::vector<inputBar*>  pathBars;
+extern std::vector<parties*>   partidosVec;
 extern std::vector<column*>    columnsVec;
+extern std::vector<button*>    configbuttons;
 extern std::vector<button*>    adminButtons;
 
 extern sqlobject* opcSelectedPtr;
-extern sqlobject* sinVotarPtr;
 extern inputBar*  barAdminTerminalPtr;
 extern inputBar*  admPasswordBarPtr;
 extern inputBar*  adminTerminalPtr;
@@ -162,6 +162,7 @@ extern inputBar*  terminalBarPtr;
 extern inputBar*  labNameBarPtr;
 extern inputBar*  cedulaBarPtr;
 extern inputBar*  actBarPtr;
+extern parties*   sinVotarPtr;
 extern button*    cambiarFrontendPtr;
 extern button*    enterConfigPtr;
 extern button*    saveConfigPtr;

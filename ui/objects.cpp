@@ -1,8 +1,10 @@
 #include "../globals.hpp"
 #include "objects.hpp"
 #include "../db/database.hpp"
+#include "../ui/drawing.hpp"
 #include <memory>
 #include <string>
+#include <fstream>                  // Llamada a la librería fstream, la cual permite la lectura de archivos
 
 // Esta función a continuación, tiene como propósito la creación de todos los objetos del programa, desde objetos simples como los botones, hasta objetos más especiales como los objetos de tipo column, que se cargan desde la base de datos
 
@@ -29,6 +31,7 @@ int objectCreation()
     while (!extraBars.empty())   extraBars.pop_back();                  // Este vector almacena todas las barras que aparecen en la pestaña "Extra" del panel de configuracion
     while (!pathBars.empty())    pathBars.pop_back();                   // Este vector almacena todas las barras que aparecen en la pestaña "Paths" del panel de configuracion
     while (!colorsVec.empty())   colorsVec.pop_back();                  // Este vector almacena todos los colores del programa
+    while (!partidosVec.empty()) partidosVec.pop_back();      // Este vector almacena las banderas de los partidos
 
     colorsVec.push_back(&DORADO_BORDE);
     colorsVec.push_back(&VOCAVERDE);
@@ -498,7 +501,7 @@ int objectCreation()
 
     if (statusCodeUpdating == 0)              // Si la función updateData() se ejecutó con exito (esta función se encarga de actualizar los datos y comprobar que todo esté bien), entonces se crearán los objetos relacionados a la base de datos
     {
-        partidosVec.reserve(quanpartidos);
+        partidosVec.reserve(quanpartidos*2);
         tablesVec.reserve(quantables);
         columnsVec.reserve(quancolumns);
         percentages.reserve(quanpartidos);
@@ -604,36 +607,79 @@ int objectCreation()
             descOutputString = "";
         }
 
-        // Partidos
+        // Texturas de las banderas de los partidos
         for (int i = 0; i < quanpartidos; i++)
         {
-            auto part = std::make_unique<sqlobject>();
-            part->name   = namepartidos[i];
-            part->xloc   = ((screenWidth / quanpartidos) * i) + (screenWidth / (quanpartidos * 2) / 2);
-            part->yloc   = (screenHeight * 0.6) * 0.5;
-            part->xsize  = screenWidth / (quanpartidos * 2);
-            part->ysize  = screenHeight * 0.1;
-            part->status = 0;
-            partidosVec.push_back(part.get());
-            adminObj.push_back(std::move(part));
+            std::string file = "bandera"s + namepartidos[i] + ".jpg"s;                     // Nombre del archivo de la bandera a buscar con el formato banderaPARTIDO.png
+            fs::path ruta = fs::current_path() / "assets" / file;                          // Almacena la ruta de la bandera a la cuál se accederá (./assets/banderaPARTIDO.png), para luego verificar si existe, y si existe procederá a cargarse
+            if (fs::exists(ruta))
+            {
+                Image flag = LoadImage(((std::string)ruta).data());                         // Crea una variable que almacena el PNG de la bandera en el bucle actual, buscando el archivo en la carpeta assets
+                auto party = std::make_unique<parties>();                             // Luego, crea una textura que almacenará un puntero de tipo parties, este puntero se almacenará luego en el vector partidosVec
+                party->name   = namepartidos[i];
+                party->xloc   = ((screenWidth / quanpartidos) * i) + (screenWidth / (quanpartidos * 2) / 2);
+                party->yloc   = (screenHeight * 0.6) * 0.5;
+                party->xsize  = screenWidth / (quanpartidos * 2);
+                party->ysize  = screenHeight * 0.1;
+                party->flagxsize = party->xsize;
+                party->flagysize = party->ysize;
+                party->mainColor = GetImageColor(flag, flag.width/2, 1);              // Dependiendo de los colores de la bandera declara al color que se encuentre en la parte superior como el valor de mainColor
+                party->subColor = {((unsigned)party->mainColor.r)/2,                       // Dependiendo de los colores de la bandera declara al color que se encuentre en la parte superior como el valor de mainColor
+                                   ((unsigned)party->mainColor.g)/2,
+                                   ((unsigned)party->mainColor.b)/2, 255};
+                party->fadeColor = Fade(party->mainColor, 0.25f);                // Y se declara un valor opaco
+                ImageFormat(&flag, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);                      // Modifica el formato de la imagen para que pueda pasarse a textura correctamente
+                ImageResize(&flag, party->flagxsize, party->flagysize);            // Se declara el tamaño de la imagen
+                party->flag = LoadTextureFromImage(flag);                          // Se carga la imagen a la textura 2D
+                UnloadImage(flag);                                                          // Se descarga la variable que almacenaba la imagen, no se necesita más
+                party->flagxloc = party->xloc + ((party->xsize/2) -
+                                                 (party->xsize/2));
+                party->flagyloc = party->yloc;
+                party->status = 0;
+                partidosVec.push_back(party.get());                              // La textura se guarda en el vector partidosVec
+                adminObj.push_back(std::move(party));                                 // Y ahora la propiedad del puntero se transfiere a adminObj
+            }
+            else return 10;
         }
 
         // Opcion nula (si existe)
         if (nullOption)
         {
-            auto nullPartido = std::make_unique<sqlobject>();
-            nullPartido->name   = *nameNuloOpcion;
-            nullPartido->xloc   = votarPtr->xloc;
-            nullPartido->yloc   = votarPtr->yloc * 0.8;
-            nullPartido->xsize  = votarPtr->xsize;
-            nullPartido->ysize  = votarPtr->ysize;
-            nullPartido->status = 0;
-            partidosVec.push_back(nullPartido.get());
-            adminObj.push_back(std::move(nullPartido));
+            std::string file = "opcion"s + *nameNuloOpcion + ".jpg"s;                     // Nombre del archivo de la bandera a buscar con el formato banderaPARTIDO.png
+            fs::path ruta = fs::current_path() / "assets" / file;                          // Almacena la ruta de la bandera a la cuál se accederá (./assets/banderaPARTIDO.png), para luego verificar si existe, y si existe procederá a cargarse
+            std::cout<<ruta<<"\n";
+            if (fs::exists(ruta))
+            {
+                Image banner = LoadImage(((std::string)ruta).data());                         // Crea una variable que almacena el PNG de la bandera en el bucle actual, buscando el archivo en la carpeta assets
+                auto nullPartido = std::make_unique<parties>();
+                nullPartido->name   = *nameNuloOpcion;
+                nullPartido->xloc   = votarPtr->xloc;
+                nullPartido->yloc   = votarPtr->yloc * 0.8;
+                nullPartido->xsize  = votarPtr->xsize;
+                nullPartido->ysize  = votarPtr->ysize;
+                nullPartido->flagxsize = nullPartido->xsize;
+                nullPartido->flagysize = nullPartido->ysize+2;
+                nullPartido->mainColor = GetImageColor(banner, banner.width/2, 1);              // Dependiendo de los colores de la bandera declara al color que se encuentre en la parte superior como el valor de mainColor
+                nullPartido->subColor = {((unsigned)nullPartido->mainColor.r)/2,                       // Dependiendo de los colores de la bandera declara al color que se encuentre en la parte superior como el valor de mainColor
+                                         ((unsigned)nullPartido->mainColor.g)/2,
+                                         ((unsigned)nullPartido->mainColor.b)/2, 255};
+                nullPartido->fadeColor = Fade(nullPartido->mainColor, 0.25f);                // Y se declara un valor opaco
+                ImageFormat(&banner, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);                      // Modifica el formato de la imagen para que pueda pasarse a textura correctamente
+                ImageResize(&banner, nullPartido->flagxsize, nullPartido->flagysize);            // Se declara el tamaño de la imagen
+                nullPartido->flag = LoadTextureFromImage(banner);                          // Se carga la imagen a la textura 2D
+                UnloadImage(banner);                                                          // Se descarga la variable que almacenaba la imagen, no se necesita más
+                nullPartido->flagxloc = nullPartido->xloc + ((nullPartido->xsize/2) -
+                                                             (nullPartido->xsize/2));
+                nullPartido->flagyloc = nullPartido->yloc;
+                nullPartido->status = 0;
+                partidosVec.push_back(nullPartido.get());
+                adminObj.push_back(std::move(nullPartido));
+            }
+            else return 10;
         }
 
-        // sinVotar (para estadisticas)
-        auto sinVotar = std::make_unique<sqlobject>();
+        // sinVotar (para estadisticas es el valor ABS. el cual representa el abstencionismo)
+        auto sinVotar = std::make_unique<parties>();
         sinVotar->name   = "ABS.";
         sinVotar->xloc   = screenWidth  * 2;
         sinVotar->yloc   = screenHeight * 2;
@@ -643,6 +689,7 @@ int objectCreation()
         sinVotarPtr = sinVotar.get();
         partidosVec.push_back(sinVotar.get());
         adminObj.push_back(std::move(sinVotar));
+
     }
 
     return 0;

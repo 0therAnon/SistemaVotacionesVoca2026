@@ -12,7 +12,8 @@
 
 // BACKEND DE LA PANTALLA  LOGO
 
-void screenLogoUpdate(Screen& currentScreen, bool& errorConfig, bool& errorUpdating)      // Es función void ya que no retorna nada cuando termina, necesita a currentScreen, errorConfig y errorUpdating para modificar sus valores a nivel global
+ // Es función void ya que no retorna nada cuando termina, necesita a currentScreen, errorConfig, errorCreating y errorUpdating para modificar sus valores a nivel global
+void screenLogoUpdate(Screen& currentScreen, bool& errorConfig, bool& errorCreating, bool& errorUpdating)
 {
     framesCounter++;              // framesCounter actúa como contador, los FPS (Frames Per Second) del programa son 60, 1 segundo es igual a 60 FPS, entonces 120 son 2 segundos
     if (framesCounter > 300)      // Cuando ya pasan 120 FPS (2 segundos), el programa entra a este if
@@ -34,7 +35,15 @@ void screenLogoUpdate(Screen& currentScreen, bool& errorConfig, bool& errorUpdat
            recordemos que en todas las funciones, siempre que llegan a la línea de código en la que hay un return, se terminará la función sin importar si falta código por ejecutar */
 
         statusCodeUpdating = updateData();        // updateData() se encarga de actualizar todos los datos que se necesitan cargar de la base de datos, y en caso de que ocurra un error, el código de error queda almacenado
-        objectCreation();                         // Se encarga de la creación de absolutamente todos los objetos (los botones, barras de tareas, etc) a partir de sus clases
+        statusCodeCreating = objectCreation();    // Se encarga de la creación de absolutamente todos los objetos (los botones, barras de tareas, etc) a partir de sus clases, y guarda el código de estado en statusCodeCreating
+
+        if (statusCodeCreating != 0)              // Si el código de estado NO es igual a cero, significa que hubo un error
+        {
+            errorCreating = true;                 // Indica que hubo un error en la función de la creación de los objetos
+            loadConfig();                         // Carga la configuración
+            currentScreen = CONFIGURATION;        // Y ahora, la pantalla actual es CONFIGURATION
+            return;
+        }
 
         if (statusCodeUpdating != 0)              // Si SÍ ocurre algún error en la actualización de los datos cargados desde la base de datos...
         {

@@ -1,5 +1,4 @@
-// PrettyDrawRectangle and drawSelected bodies live in drawing.hpp (template functions).
-// This file contains only the non-template drawing utilities.
+// PrettyDrawRectangle, drawSelected y drawImages se encuentran en drawing.hpp (funciones template).
 #include "drawing.hpp"
 #include "../db/database.hpp"
 #include <string>
@@ -308,7 +307,7 @@ int shortmessage(std::string msg, double fs, bool &activator, int timeFps)      
 std::vector<double> statistics(std::string mode,                          // El modo puede ser "backend" o "frontend"
                                std::string outputMode,              // "percentages" o "quantity"
                                std::vector<double>& dataVec,        // Vector con los datos (votos o porcentajes)
-                               std::vector<sqlobject*> partVec,     // Vector con los partidos y sus nombres
+                               std::vector<parties*> partVec,       // Vector con los partidos y sus nombres
                                int posx,                            // Posición X donde dibujar, esto es de solo frontend
                                int posy)                            // Posición Y donde dibujar, esto es de solo frontend
 {

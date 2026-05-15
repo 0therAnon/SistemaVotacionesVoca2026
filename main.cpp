@@ -56,6 +56,7 @@ int main(void)
     bool successfulPdfCreation  = false;    // Verifica si el PDF se pudo crear correctamente con la funcion inform()
     bool existstudent           = false;    // Verifica si el estudiante que se intentó buscar con la cédula en MAINMENU existe o no
     bool errorUpdating          = false;    // Verifica si la función updateData() tuvo algun error o no
+    bool errorCreating          = false;    // Verifica si la función objectCreation() tuvo algun error o no
     bool errorConfig            = false;    // Verifica si la función configureData() tuvo algun error o no
     bool votoBlanco             = false;    // Verifica si el estudiante seleccionó un partido o un voto nulo, esto lo obliga a votar por algo, y no seleccionar nada | Es el bug descubierto por Josué Torres
     bool fromAdmin              = false;    // Verifica si la última pantalla en la que se encontraba el usuario era ADMINMENU o no, esto para devolverse a ADMINMENU si se accedió desde esa pantalla, ya que también se puede acceder por LOGO
@@ -86,10 +87,10 @@ int main(void)
         switch (oldCurrentScreen)    // Busca cuál es la ventana actual
         {
             case LOGO:            // En caso de que la ventana sea LOGO
-                screenLogoUpdate(currentScreen, errorConfig, errorUpdating);
+                screenLogoUpdate(currentScreen, errorConfig, errorCreating, errorUpdating);
                 break;
             case CONFIGURATION:   // En caso de que la ventana sea CONFIGURATION
-                screenConfigUpdate(currentScreen, errorConfig, errorUpdating,
+                screenConfigUpdate(currentScreen, errorConfig, errorCreating, errorUpdating,
                                    invalidIp, inputEmpty, fromAdmin);
                 break;
             case MAINMENU:        // En caso de que la ventana sea MAINMENU
@@ -131,7 +132,7 @@ int main(void)
                 screenLogoDraw(currentScreen);
                 break;
             case CONFIGURATION:   // En caso de que la ventana sea CONFIGURATION
-                screenConfigDraw(currentScreen, inputEmpty, invalidIp, errorUpdating, errorConfig);
+                screenConfigDraw(currentScreen, inputEmpty, invalidIp, errorUpdating, errorCreating, errorConfig);
                 break;
             case MAINMENU:        // En caso de que la ventana sea MAINMENU
                 screenMainmenuDraw(currentScreen);

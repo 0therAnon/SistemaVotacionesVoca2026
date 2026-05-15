@@ -46,7 +46,7 @@ void screenVotationDraw(Screen &currentScreen, bool& votoBlanco)           // Ne
                (Vector2){(float)centertext("O si lo desea, puede votar nulo"s, screenWidth, fontSize),
                           (float)(screenHeight * 0.2)},
                fontSize, 2, COLORTEXTO);
-    drawSelected(partidosVec, littleFontSize * 1.5, partidoSelected);                                                             // Dibujará a los partidos disponibles
+    drawParties(partidosVec, littleFontSize * 1.5, partidoSelected);                                                              // Dibujará a los partidos disponibles, y el string "custom" significa que con bordes personalizados
     PrettyDrawRectangle(votarPtr);                                                                                                // Dibujará el botón para votar
     DrawTextEx(fontTtf, votarPtr->name.data(),                                                                                    // Y dibujará el nombre de ese botón
                (Vector2){votarPtr->xloc + (float)centertext(votarPtr->name, continuarPtr->xsize, fontSize),

@@ -129,6 +129,7 @@ bool pdfError           = false;  // Verifica si hubo un error con la creación 
 bool showBeam           = true;   // Verifica si la línea de la barra de entrada tiene que mostrarse o no, para dar el efecto de que la línea está parpaedeando
 
 int statusCodeUpdating  = 100;  // Es la variable que almacenará el número de retorno de la función updateData(), cada número especifica un error distinto en la función o si todo funcionó correctamente
+int statusCodeCreating  = 100;  // Es la variable que almacenará el número de retorno de la función objectCreation(), cada número especifica un error distinto en la función o si todo funcionó correctamente
 int intentosRestantes   = 3;    // Verifica cuántas veces se intentó autenticar el administrador
 int execConfirmation    = 0;    // Verifica si se ejecuta la query solicitada en la pestaña de administración correspondiente, está relacionada a la función alert()
 int statusCodeConfig    = 0;    // Verifica el código de estado de la configuración
@@ -157,21 +158,20 @@ int add                 = 0;    // Variable usada en logfunction() para el scrol
 jmp_buf env;    // Variable usada para almacenar una dirección en la memoria a la que el flujo del programa regresará en caso de errores en la librería HPDF
 
 // ── UI object collections ─────────────────────────────────────────────────────
-std::vector<std::unique_ptr<nxyxys>> adminObj = {}; // Almacena punteros a todos los objetos cuya clase padre sea nxyxys, es decir, todos
-std::vector<sqlobject*> partidosVec           = {}; // Almacena todos los punteros a objetos de tipo sqlobject que sean especificamente de los partidos cargados de la base de datos
+std::vector<std::unique_ptr<nxyxys>> adminObj = {}; // Almacena punteros a todos los objetos cuya clase padre sea nxyxys, es decir, casi todos excepto texturas/imagenes
 std::vector<sqlobject*> opcionesAct           = {}; // Almacena todos los punteros a todas las opciones de la pestaña actualizar, osea, todas las columnas de la tabla en la que se encuentre el usuario
-std::vector<button*> configbuttons            = {}; // Almacena todos los punteros a todos los botones que actúan como pestañas de la pantalla CONFIGURATION
 std::vector<sqlobject*> tablesVec             = {}; // Almacena todos los punteros a todas las tablas cargadas desde MySQL
-std::vector<inputBar*> termBars               = {}; // Almacena todos los punteros a todas las barras de la pestaña Terminal de la pantalla ADMINMENU
 std::vector<inputBar*> extraBars              = {}; // Almacena todos los punteros a todas las barras de la pestaña "Extra" de la pantalla CONFIGURATION
+std::vector<inputBar*> termBars               = {}; // Almacena todos los punteros a todas las barras de la pestaña Terminal de la pantalla ADMINMENU
 std::vector<inputBar*> pathBars               = {}; // Almacena todos los punteros a todas las barras de la pestaña "Paths" de la pantalla CONFIGURATION
+std::vector<parties*> partidosVec             = {}; // Almacena todos los punteros a los partidos cargados de la base de datos
 std::vector<column*> columnsVec               = {}; // Almacena todos los punteros de las columnas cargadas desde la base de datos
+std::vector<button*> configbuttons            = {}; // Almacena todos los punteros a todos los botones que actúan como pestañas de la pantalla CONFIGURATION
 std::vector<button*> adminButtons             = {}; // Almacena todos punteros de los botones de la pantalla ADMINMENU
 
 // ── Raw pointer aliases ───────────────────────────────────────────────────────
 // Declaración de los punteros de los objetos, estos punteros necesito que sean globales ya que varios se usan externamente de la función main
 sqlobject* opcSelectedPtr       = nullptr;
-sqlobject* sinVotarPtr          = nullptr;
 inputBar*  barAdminTerminalPtr  = nullptr;
 inputBar*  admPasswordBarPtr    = nullptr;
 inputBar*  adminTerminalPtr     = nullptr;
@@ -179,6 +179,7 @@ inputBar*  terminalBarPtr       = nullptr;
 inputBar*  labNameBarPtr        = nullptr;
 inputBar*  cedulaBarPtr         = nullptr;
 inputBar*  actBarPtr            = nullptr;
+parties*   sinVotarPtr          = nullptr;
 button*    cambiarFrontendPtr   = nullptr;
 button*    enterConfigPtr       = nullptr;
 button*    saveConfigPtr        = nullptr;

@@ -15,6 +15,7 @@
 
 void screenConfigUpdate(Screen& currentScreen,            // La función necesita el valor de la pantalla actual
                         bool& errorConfig,                // Necesita la variable que verifica si hubo un error en la función configureData()
+                        bool& errorCreating,              // Necesita la variable que verifica si hubo un error en la función objectCreation()
                         bool& errorUpdating,              // Necesita la variable que verifica si hubo un error en la función updateData()
                         bool& invalidIp,                  // Necesita saber si hubo un error con la IP introducida
                         bool& inputEmpty,                 // Necesita saber si hay datos de entrada vacíos
@@ -74,10 +75,19 @@ void screenConfigUpdate(Screen& currentScreen,            // La función necesit
 
                     statusCodeUpdating = updateData();                        // Se actualiza la información de la base de datos y se verifica que la configuración sea correcta, el código de estado de la función se guarda en statusCodeUpdating
                     std::string oldConfigSelected = configSelected;           // Se guarda la última pestaña actual dentro de oldConfigSelected, esto para evitar de que el reinicio de los objetos hagan que la pestaña actual cambie
-                    objectCreation();                                         // Se vuelven a crear los objetos, debido a que deben de ser actualizados dependiendo del código de estado que haya devuelto updateData()
+                    statusCodeCreating = objectCreation();
+                    if (statusCodeCreating == 10)                             // Se vuelven a crear los objetos, debido a que deben de ser actualizados dependiendo del código de estado que haya devuelto updateData()
+                    {                                                         // Sin embargo, si el código de estado de objectCreation es igual a 10, significa que hubo un error al cargar las banderas de los partidos, entonces...
+                        errorCreating = true;
+                        fs::path pathToLogs = fs::current_path() / "logs.txt";                                                                    // Se busca el archivo logs.txt para escribir el error que hubo
+                        std::ofstream logFile(pathToLogs, std::ios::app);                                                                         // El archivo logs.txt se abre en modo de escritura y se guarda en logFile
+                        logFile << "[ " << std::chrono::system_clock::now() << " ]  | >>> Error al cargar las banderas de los partidos\n";        // Se escribe en el siguiente formato el error: "[ hora ] | >>> error"
+                        logFile.close();                                                                                // Se cierra el archivo
+                        loadConfig();                                                                                   // Se procede a cargar a las barras de entrada la configuraación previa
+                    }
                     configSelected = oldConfigSelected;                       // Se reasigna configSelected al valor que tenía previamente
 
-                    if (statusCodeUpdating == 0)                              // Si el updateData() NO tuvo errores, procederá a escribir en el archivo de configuración la configuración que está usando el programa
+                    if (statusCodeUpdating == 0 && statusCodeCreating == 0)                           // Si el updateData() NO tuvo errores, procederá a escribir en el archivo de configuración la configuración que está usando el programa
                     {
                         fs::path pathToConfig = fs::current_path() / ".config";                       // Busca al archivo .config en la carpeta actual, hay que recordar que este archivo es el archivo de configuración
                         std::ofstream cfgFile(pathToConfig);                                          // Se procede a guardar en modo escritura la variable que almacena la ruta del archivo de confiuración
@@ -228,6 +238,7 @@ void screenConfigDraw(Screen &currentScreen,
                       bool &inputEmpty,                 // Estas variables sirven principalmente
                       bool &invalidIp,                  // para saber si ocurrieron errores
                       bool &errorUpdating,              // en alguna parte del backend y mostrar
+                      bool &errorCreating,              // los errores que ocurrieron y
                       bool &errorConfig)                // algun mensaje en este frontend
 {
     if (currentScreen == CONFIGURATION) transition("show");
@@ -305,7 +316,7 @@ void screenConfigDraw(Screen &currentScreen,
 
     if (inputEmpty) {shortmessage("Los datos se encuentran vacios", fontSize, inputEmpty);}           // Si inputEmpty se activa, es por que una barra se encuentra vacía, entonces llamará a shortmessage() para mostrar el mensaje escrito
     else if (invalidIp) {shortmessage("La IP digitada es invalida", fontSize, invalidIp);}            // Si invalidIp se activa, es por que una IP digitada es inválida, entonces llamará a shortmessage() para mostrar el mensaje escrito
-    else if (errorUpdating || errorConfig)            // Si errorUpdating se activa, es por algun error en la configuracion, como también errorConfig, entonces...
+    else if (errorUpdating || errorConfig || errorCreating)            // Si errorUpdating se activa, es por algun error en la configuracion, como también errorConfig, entonces...
     {
         std::string errorMessage = "";    // Define a errorMessage, que será el string que almacenará alguno de los siguientes mensajes
 
@@ -327,14 +338,16 @@ void screenConfigDraw(Screen &currentScreen,
         else if (statusCodeUpdating == 15)  errorMessage = "Error en la ruta de la fuente de la letra para el PDF";
         else if (statusCodeUpdating == 20)  errorMessage = "Error desconocido";
         else if (statusCodeUpdating == 127) errorMessage = "Error | La IP del servidor no existe";
+        else if (statusCodeCreating == 10)  errorMessage = "Error al cargar las banderas de los partidos";
         else if (statusCodeConfig == 1)     errorMessage = "Error | No se encontro el archivo de configuracion";
         else if (statusCodeConfig == 2)     errorMessage = "Error | Faltaron parametros en el archivo de configuracion";
-        if (errorConfig)   shortmessage(errorMessage, mediumFontSize, errorConfig, 450);      // Si errorConfig era el que se encontraba en true, llamará a la función shortmessage con errorConfig entre los argumentos
-        else               shortmessage(errorMessage, mediumFontSize, errorUpdating, 450);    // en caso contrario, llamará a errorUpdating
+        if (errorConfig)   shortmessage(errorMessage, mediumFontSize, errorConfig, 450);          // Si errorConfig era el que se encontraba en true, llamará a la función shortmessage con errorConfig entre los argumentos
+        else if(errorUpdating)  shortmessage(errorMessage, mediumFontSize, errorUpdating, 450);   // en caso de que sea errorUpdating, llamará a errorUpdating
+        else shortmessage(errorMessage, mediumFontSize, errorCreating, 450);                      // Como última opción, entonces llamará a errorCreating
     }
     if (currentScreen != CONFIGURATION && alphaIsZero == false)
     {
         transition("hide");
-        screenConfigDraw(currentScreen, inputEmpty, invalidIp, errorUpdating, errorConfig);
+        screenConfigDraw(currentScreen, inputEmpty, invalidIp, errorUpdating, errorCreating, errorConfig);
     }
 }
