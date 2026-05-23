@@ -129,6 +129,7 @@ extern int maxLenName;
 extern int nlSpacing;
 extern int stopCtrls;
 extern int inputpos;
+extern int alphaImg;
 extern int opcSize;
 extern int logpos;
 extern int tabCnt;

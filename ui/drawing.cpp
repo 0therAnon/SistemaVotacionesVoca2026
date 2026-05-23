@@ -519,6 +519,7 @@ int transition(std::string mode)
                 alphaIsFull = false;                                    // e indica que alpha aún NO es 255
             }
         }
+        alphaImg = (int)colorsVec[0]->a;                                // Además, el valor alpha de las imágenes también será el valor del primer alpha modificado del vector colorsVec
 
     }
     if (mode == "show")                                                 // Fuera del bucle se verifica específicamente si el modo es "show", para manipular a GRIS

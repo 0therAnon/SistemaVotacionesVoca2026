@@ -147,7 +147,7 @@ int main(void)
                 screenConfirmationDraw(currentScreen, existstudent, correctstudent, studentName);
                 break;
             case VOTATION:        // En caso de que la ventana sea VOTATION
-                screenVotationDraw(currentScreen, votoBlanco);
+                screenVotationDraw(currentScreen, oldCurrentScreen, votoBlanco);
                 break;
             case ENDING:          // En caso de que la ventana sea ENDING
                 screenEndingDraw(currentScreen, verifyvote);

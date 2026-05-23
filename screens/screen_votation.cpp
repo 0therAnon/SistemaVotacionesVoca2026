@@ -35,7 +35,7 @@ void screenVotationUpdate(Screen& currentScreen,        // Necesita la variable 
 
 // Frontend de VOTATION
 
-void screenVotationDraw(Screen &currentScreen, bool& votoBlanco)           // Necesita a la variable votoBlanco para verificar si debe mostrar el mensaje comunicando de que debe votar por una opción
+void screenVotationDraw(Screen &currentScreen, Screen& oldCurrentScreen, bool& votoBlanco)           // Necesita a la variable votoBlanco para verificar si debe mostrar el mensaje comunicando de que debe votar por una opción
 {
     if (currentScreen == VOTATION) transition("show");
     DrawTextEx(fontTtf, "Por favor, escoja un partido por el que desea votar"s.data(),                                            // En el frontend mostrará un mensaje diciendo de que vote por algún partido
@@ -46,7 +46,7 @@ void screenVotationDraw(Screen &currentScreen, bool& votoBlanco)           // Ne
                (Vector2){(float)centertext("O si lo desea, puede votar nulo"s, screenWidth, fontSize),
                           (float)(screenHeight * 0.2)},
                fontSize, 2, COLORTEXTO);
-    drawParties(partidosVec, littleFontSize * 1.5, partidoSelected);                                                              // Dibujará a los partidos disponibles, y el string "custom" significa que con bordes personalizados
+    drawParties(partidosVec, littleFontSize * 1.5, partidoSelected, currentScreen, oldCurrentScreen);                             // Dibujará a los partidos disponibles, y el string "custom" significa que con bordes personalizados
     PrettyDrawRectangle(votarPtr);                                                                                                // Dibujará el botón para votar
     DrawTextEx(fontTtf, votarPtr->name.data(),                                                                                    // Y dibujará el nombre de ese botón
                (Vector2){votarPtr->xloc + (float)centertext(votarPtr->name, continuarPtr->xsize, fontSize),
@@ -56,6 +56,6 @@ void screenVotationDraw(Screen &currentScreen, bool& votoBlanco)           // Ne
     if (currentScreen != VOTATION && alphaIsZero == false)
     {
         transition("hide");
-        screenVotationDraw(currentScreen, votoBlanco);
+        screenVotationDraw(currentScreen, oldCurrentScreen, votoBlanco);
     }
 }

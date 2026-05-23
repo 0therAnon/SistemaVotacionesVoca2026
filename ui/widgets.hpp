@@ -69,11 +69,18 @@ class parties : public nxyxys {
     float flagyloc;
     float flagxsize;
     float flagysize;
-    Texture2D president;                      // Presidente del partido
-    Texture2D flag;                           // Bandera del partido
-    Texture2D logo;                           // Logo del partido
-    Color linesColor;                         // Bordes de los botones del partido
-    Color mainColor;                          // Color del botón cuando esta presionado
-    Color subColor;                           // Color del botón cuando el cursor está encima
-    Color fadeColor;                          // Color del botón cuando no está presionado
+    float logoW;                              // Ancho del logo en pantalla
+    float logoH;                              // Alto del logo en pantalla
+    float presidentW;                         // Ancho del representante en pantalla
+    float presidentH;                         // Alto del representante en pantalla
+    unsigned char imageAlpha = 0;            // Alpha compartido para logo, bandera y representante (transición)
+    bool hasLogo       = false;              // Indica si el partido tiene logo cargado
+    bool hasPresident  = false;              // Indica si el partido tiene representante cargado
+    Texture2D president;                     // Representante del partido
+    Texture2D flag;                          // Bandera del partido
+    Texture2D logo;                          // Logo del partido
+    Color linesColor;                        // Bordes de los botones del partido
+    Color mainColor;                         // Color del botón cuando esta presionado
+    Color subColor;                          // Color del botón cuando el cursor está encima
+    Color fadeColor;                         // Color del botón cuando no está presionado
 };

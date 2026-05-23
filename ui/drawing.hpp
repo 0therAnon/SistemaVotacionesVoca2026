@@ -82,42 +82,58 @@ inline void drawImages(X textureVector)                 // Esta función se enca
 template<typename P>
 inline void drawParties(P pVec,
                         double fontsize,
-                        std::string selected)
+                        std::string selected,
+                        Screen& currentScreen,
+                        Screen& oldCurrentScreen)
 {
-    for (int i = 0; i < (int)pVec.size(); i++)       // Recorre todos los botones del vector
+    for (int i = 0; i < (int)pVec.size(); i++)       // Recorre todos los partidos del vector
     {
-        float width = (pVec[i]->xloc + pVec[i]->xsize * 0.5f) * 2.0f;                      // Se calcula el ancho del botón, esto se usará para luego llamar a centertext() para centrar el nombre en el botón
-        if (pVec[i]->name != selected)               // Si el botón actual en el vector NO coincide con el string del nombre del botón resaltado, entonces...
+        // Ignorar el partido ABS. (sinVotar, que no se muestra en VOTATION)
+        if (pVec[i]->xsize == 0 && pVec[i]->ysize == 0) continue;
+
+        float pressOffset = (pVec[i]->status == 3 || pVec[i]->status == 4) ? 3.0f : 0.0f;
+        float sizeReduce  = (pVec[i]->status == 3 || pVec[i]->status == 4) ? 3.0f : 0.0f;
+        float hoverExpand = (pVec[i]->status == 1) ? 2.0f : 0.0f;
+
+        bool isSelected = (pVec[i]->name == selected);
+
+        float rx = pVec[i]->xloc  - hoverExpand;
+        float ry = pVec[i]->yloc  - hoverExpand + pressOffset;
+        float rw = pVec[i]->xsize + hoverExpand * 2 - sizeReduce;
+        float rh = pVec[i]->ysize + hoverExpand * 2 - sizeReduce;
+
+        Color imgTint = { 255, 255, 255, (unsigned char)alphaImg };  // Tinte blanco con alpha animado
+
+        // ── Bandera (zona central) con bordes redondeados ─────────────────────
         {
-            float pressOffset = (pVec[i]->status == 3 || pVec[i]->status == 4) ? 3.0f : 0.0f;
-            float sizeReduce  = (pVec[i]->status == 3 || pVec[i]->status == 4) ? 3.0f : 0.0f;
-            float hoverExpand = (pVec[i]->status == 1) ? 2.0f : 0.0f;
-            float rx = pVec[i]->xloc  - hoverExpand;
-            float ry = pVec[i]->yloc  - hoverExpand + pressOffset;
-            float rw = pVec[i]->xsize + hoverExpand * 2 - sizeReduce;
-            float rh = pVec[i]->ysize + hoverExpand * 2 - sizeReduce;
-            if (pVec[i]->status != 3 && pVec[i]->status != 4)
-                DrawRectangleRoundedLines({rx + 4, ry + 6, rw, rh}, 0.5f, 0, pVec[i]->fadeColor);
-            DrawTexture(pVec[i]->flag, rx, ry, WHITE);
-            float borderThick = (pVec[i]->status == 1)                         ? 5.0f :   // Hover: 6px para feedback visual claro
-                                (pVec[i]->status == 3 || pVec[i]->status == 4) ? 6.5f :   // Presionado: 2px, el botón se hundió
-                                                                                 3.5f;    // Reposo: 5.5px, borde dorado bien visible
-            DrawRectangleRoundedLinesEx({rx, ry, rw, rh}, 0.5f, 0, borderThick, pVec[i]->fadeColor);
-            DrawTextEx(fontTtf, pVec[i]->name.data(),                                          // Se dibuja el nombre del botón
-                       (Vector2){(float)centertext(pVec[i]->name, width, fontsize),
-                                  (float)((pVec[i]->yloc + pVec[i]->ysize + pVec[i]->yloc) / 2.0 - fontsize / 2.0)},
-                       fontsize, 2, NEGRO);
+            // Primero dibujamos la textura de la bandera
+            DrawTexture(pVec[i]->flag, pVec[i]->flagxloc, pVec[i]->flagyloc, imgTint);
+
+            // Borde redondeado alrededor de la bandera
+            float borderThick = (pVec[i]->status == 1) ? 5.0f :   // Hover: 6px para feedback visual claro
+                                (pVec[i]->name == selected ||
+                                 pVec[i]->status == 3 ||
+                                 pVec[i]->status == 4) ? 6.5f :   // Presionado: 2px, el botón se hundió
+                                                         3.5f;    // Reposo: 5.5px, borde dorado bien visible
+            DrawRectangleRoundedLinesEx({pVec[i]->flagxloc, pVec[i]->flagyloc, pVec[i]->flagxsize, pVec[i]->flagysize},
+                                        0.15f, 0, borderThick, DORADO_BORDE);
         }
-        else                                              // En caso de que el nombre del botón SÍ coincida con el string del nombre del botón resaltado, entonces se procederá a dibujar el botón de forma manual resaltado
+
+        // Representante y logo
+        if (pVec[i]->hasPresident && pVec[i]->name != partidosVec[partidosVec.size()-2]->name)
         {
-            DrawTexture(pVec[i]->flag, pVec[i]->flagxloc, pVec[i]->flagyloc, WHITE);
-            DrawRectangleRoundedLinesEx({(float)pVec[i]->xloc, (float)pVec[i]->yloc,                      // Dibuja las líneas del borde del botón con bordes redondos
-                                         (float)pVec[i]->xsize, (float)pVec[i]->ysize},
-                                        0.5f, 0, 5.5f, pVec[i]->subColor);
-            DrawTextEx(fontTtf, pVec[i]->name.data(),                                          // Se dibuja el nombre del botón
-                       (Vector2){(float)centertext(pVec[i]->name, width, fontsize),
-                                  (float)((pVec[i]->yloc + pVec[i]->ysize + pVec[i]->yloc) / 2.0 - fontsize / 2.0)},
-                       fontsize, 2, NEGRO);
+            DrawTextureEx(pVec[i]->logo,
+                          {(float)pVec[i]->flagxloc+pVec[i]->flagxsize*0.05f,
+                           (float)pVec[i]->flagyloc+(pVec[i]->flagysize*0.5f-(pVec[i]->logo.height*0.5f))}, 0.0f, 1.0f, imgTint);
+            DrawTextureEx(pVec[i]->president,
+                          {(float)pVec[i]->flagxloc+(float)(pVec[i]->flagxsize*0.5f+(pVec[i]->president.width/3.3)),
+                           (float)pVec[i]->flagyloc+(pVec[i]->flagysize*0.5f-(pVec[i]->president.height*0.5f))}, 0.0f, 1.0f, imgTint);
+        }
+        else
+        {
+            DrawTextureEx(pVec[i]->logo,
+                          {(float)pVec[i]->flagxloc+pVec[i]->flagxsize*0.04f,
+                           (float)pVec[i]->flagyloc+(pVec[i]->flagysize*0.5f-(pVec[i]->logo.height*0.5f))}, 0.0f, 1.0f, imgTint);
         }
     }
 }

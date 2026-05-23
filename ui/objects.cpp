@@ -191,7 +191,7 @@ int objectCreation()
     auto votar = std::make_unique<button>();
     votar->name      = "Votar";
     votar->xloc      = cedulaPtr->xloc;
-    votar->yloc      = screenHeight * 0.7;
+    votar->yloc      = screenHeight * 0.8;
     votar->xsize     = screenWidth * 0.16;
     votar->ysize     = screenHeight * 0.1;
     votar->status    = 0;
@@ -607,75 +607,131 @@ int objectCreation()
             descOutputString = "";
         }
 
-        // Texturas de las banderas de los partidos
+        // Texturas de las banderas, logos y representantes de los partidos
         for (int i = 0; i < quanpartidos; i++)
         {
-            std::string file = "bandera"s + namepartidos[i] + ".jpg"s;                     // Nombre del archivo de la bandera a buscar con el formato banderaPARTIDO.png
-            fs::path ruta = fs::current_path() / "assets" / file;                          // Almacena la ruta de la bandera a la cuál se accederá (./assets/banderaPARTIDO.png), para luego verificar si existe, y si existe procederá a cargarse
-            if (fs::exists(ruta))
+            // ── Bandera (obligatoria) ─────────────────────────────────────────
+            std::string fileFlag = "bandera"s + namepartidos[i] + ".jpg"s;
+            fs::path rutaFlag = fs::current_path() / "assets" / fileFlag;
+            if (!fs::exists(rutaFlag)) return 10;                                           // Si la bandera no existe, retorna error 10
+
+            Image flag = LoadImage(((std::string)rutaFlag).data());
+
+            auto party = std::make_unique<parties>();
+            party->name   = namepartidos[i];
+
+            party->xloc   = ((screenWidth / quanpartidos) * i) + (screenWidth / (quanpartidos * 2) / 2);
+            party->yloc   = (screenHeight * 0.6) * 0.6;
+            party->xsize  = screenWidth / (quanpartidos * 2);
+            party->ysize  = screenHeight * 0.1;
+
+            party->flagxsize = party->xsize;
+            party->flagysize = party->ysize;
+            party->flagxloc  = party->xloc;
+            party->flagyloc  = party->yloc;
+
+            // Colores derivados de la bandera
+            party->mainColor = GetImageColor(flag, flag.width / 2, 1);
+            party->subColor  = { (unsigned char)(party->mainColor.r / 2),
+                                 (unsigned char)(party->mainColor.g / 2),
+                                 (unsigned char)(party->mainColor.b / 2), 255 };
+            party->fadeColor = Fade(party->mainColor, 0.25f);
+
+            // Cargar textura de bandera
+            ImageFormat(&flag, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+            ImageResize(&flag, (int)party->flagxsize, (int)party->flagysize);
+            party->flag = LoadTextureFromImage(flag);
+            UnloadImage(flag);
+
+            // ── Logo
+            std::string fileLogo = "logo"s + namepartidos[i] + ".png"s;
+            fs::path rutaLogo = fs::current_path() / "assets" / fileLogo;
+            if (fs::exists(rutaLogo))
             {
-                Image flag = LoadImage(((std::string)ruta).data());                         // Crea una variable que almacena el PNG de la bandera en el bucle actual, buscando el archivo en la carpeta assets
-                auto party = std::make_unique<parties>();                             // Luego, crea una textura que almacenará un puntero de tipo parties, este puntero se almacenará luego en el vector partidosVec
-                party->name   = namepartidos[i];
-                party->xloc   = ((screenWidth / quanpartidos) * i) + (screenWidth / (quanpartidos * 2) / 2);
-                party->yloc   = (screenHeight * 0.6) * 0.5;
-                party->xsize  = screenWidth / (quanpartidos * 2);
-                party->ysize  = screenHeight * 0.1;
-                party->flagxsize = party->xsize;
-                party->flagysize = party->ysize;
-                party->mainColor = GetImageColor(flag, flag.width/2, 1);              // Dependiendo de los colores de la bandera declara al color que se encuentre en la parte superior como el valor de mainColor
-                party->subColor = {((unsigned)party->mainColor.r)/2,                       // Dependiendo de los colores de la bandera declara al color que se encuentre en la parte superior como el valor de mainColor
-                                   ((unsigned)party->mainColor.g)/2,
-                                   ((unsigned)party->mainColor.b)/2, 255};
-                party->fadeColor = Fade(party->mainColor, 0.25f);                // Y se declara un valor opaco
-                ImageFormat(&flag, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);                      // Modifica el formato de la imagen para que pueda pasarse a textura correctamente
-                ImageResize(&flag, party->flagxsize, party->flagysize);            // Se declara el tamaño de la imagen
-                party->flag = LoadTextureFromImage(flag);                          // Se carga la imagen a la textura 2D
-                UnloadImage(flag);                                                          // Se descarga la variable que almacenaba la imagen, no se necesita más
-                party->flagxloc = party->xloc + ((party->xsize/2) -
-                                                 (party->xsize/2));
-                party->flagyloc = party->yloc;
-                party->status = 0;
-                partidosVec.push_back(party.get());                              // La textura se guarda en el vector partidosVec
-                adminObj.push_back(std::move(party));                                 // Y ahora la propiedad del puntero se transfiere a adminObj
+                Image logo = LoadImage(((std::string)rutaLogo).data());
+                party->logoW = logo.width * 0.5f;
+                party->logoH = logo.height * 0.5f;
+                ImageFormat(&logo, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+                ImageResize(&logo, (int)party->logoW, (int)party->logoH);
+                party->logo    = LoadTextureFromImage(logo);
+                party->hasLogo = true;
+                UnloadImage(logo);
             }
-            else return 10;
+            else return 11;                                                                 // Si el logo no existe, retorna error 11
+
+            // ── Representante (opcional, pero si no existe retorna error 11) ──
+            std::string fileRep = "representante"s + namepartidos[i] + ".png"s;
+            fs::path rutaRep = fs::current_path() / "assets" / fileRep;
+            if (fs::exists(rutaRep))
+            {
+                Image rep = LoadImage(((std::string)rutaRep).data());
+                party->presidentW = rep.width * 0.5f;
+                party->presidentH = rep.height * 0.5f;
+                ImageFormat(&rep, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+                ImageResize(&rep, (int)party->presidentW, (int)party->presidentH);
+                party->president    = LoadTextureFromImage(rep);
+                party->hasPresident = true;
+                UnloadImage(rep);
+            }
+            else return 11;                                                                 // Si el representante no existe, retorna error 11
+
+            party->imageAlpha = 0;
+            party->status     = 0;
+            partidosVec.push_back(party.get());
+            adminObj.push_back(std::move(party));
         }
 
         // Opcion nula (si existe)
         if (nullOption)
         {
-            std::string file = "opcion"s + *nameNuloOpcion + ".jpg"s;                     // Nombre del archivo de la bandera a buscar con el formato banderaPARTIDO.png
-            fs::path ruta = fs::current_path() / "assets" / file;                          // Almacena la ruta de la bandera a la cuál se accederá (./assets/banderaPARTIDO.png), para luego verificar si existe, y si existe procederá a cargarse
-            std::cout<<ruta<<"\n";
-            if (fs::exists(ruta))
+            std::string fileFlag = "opcion"s + *nameNuloOpcion + ".jpg"s;
+            fs::path rutaFlag = fs::current_path() / "assets" / fileFlag;
+            std::cout << rutaFlag << "\n";
+            if (!fs::exists(rutaFlag)) return 10;
+
+            Image banner = LoadImage(((std::string)rutaFlag).data());
+            auto nullPartido = std::make_unique<parties>();
+            nullPartido->name   = *nameNuloOpcion;
+            nullPartido->xsize  = votarPtr->xsize * 0.9;
+            nullPartido->ysize  = votarPtr->ysize * 0.9;
+            nullPartido->xloc   = screenWidth/2-(nullPartido->xsize/2);
+            nullPartido->yloc   = votarPtr->yloc * 0.8;
+
+            nullPartido->flagxloc  = nullPartido->xloc;
+            nullPartido->flagyloc  = nullPartido->yloc;
+            nullPartido->flagxsize = nullPartido->xsize;
+            nullPartido->flagysize = nullPartido->ysize;
+
+            nullPartido->mainColor = GetImageColor(banner, banner.width / 2, 1);
+            nullPartido->subColor  = { (unsigned char)(nullPartido->mainColor.r / 2),
+                                       (unsigned char)(nullPartido->mainColor.g / 2),
+                                       (unsigned char)(nullPartido->mainColor.b / 2), 255 };
+            nullPartido->fadeColor = Fade(nullPartido->mainColor, 0.25f);
+            ImageFormat(&banner, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+            ImageResize(&banner, (int)nullPartido->flagxsize, (int)nullPartido->flagysize);
+            nullPartido->flag = LoadTextureFromImage(banner);
+            UnloadImage(banner);
+
+            // Logo de la opción nula (opcional)
+            std::string fileLogoN = "logo"s + *nameNuloOpcion + ".png"s;
+            fs::path rutaLogoN = fs::current_path() / "assets" / fileLogoN;
+            if (fs::exists(rutaLogoN))
             {
-                Image banner = LoadImage(((std::string)ruta).data());                         // Crea una variable que almacena el PNG de la bandera en el bucle actual, buscando el archivo en la carpeta assets
-                auto nullPartido = std::make_unique<parties>();
-                nullPartido->name   = *nameNuloOpcion;
-                nullPartido->xloc   = votarPtr->xloc;
-                nullPartido->yloc   = votarPtr->yloc * 0.8;
-                nullPartido->xsize  = votarPtr->xsize;
-                nullPartido->ysize  = votarPtr->ysize;
-                nullPartido->flagxsize = nullPartido->xsize;
-                nullPartido->flagysize = nullPartido->ysize+2;
-                nullPartido->mainColor = GetImageColor(banner, banner.width/2, 1);              // Dependiendo de los colores de la bandera declara al color que se encuentre en la parte superior como el valor de mainColor
-                nullPartido->subColor = {((unsigned)nullPartido->mainColor.r)/2,                       // Dependiendo de los colores de la bandera declara al color que se encuentre en la parte superior como el valor de mainColor
-                                         ((unsigned)nullPartido->mainColor.g)/2,
-                                         ((unsigned)nullPartido->mainColor.b)/2, 255};
-                nullPartido->fadeColor = Fade(nullPartido->mainColor, 0.25f);                // Y se declara un valor opaco
-                ImageFormat(&banner, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);                      // Modifica el formato de la imagen para que pueda pasarse a textura correctamente
-                ImageResize(&banner, nullPartido->flagxsize, nullPartido->flagysize);            // Se declara el tamaño de la imagen
-                nullPartido->flag = LoadTextureFromImage(banner);                          // Se carga la imagen a la textura 2D
-                UnloadImage(banner);                                                          // Se descarga la variable que almacenaba la imagen, no se necesita más
-                nullPartido->flagxloc = nullPartido->xloc + ((nullPartido->xsize/2) -
-                                                             (nullPartido->xsize/2));
-                nullPartido->flagyloc = nullPartido->yloc;
-                nullPartido->status = 0;
-                partidosVec.push_back(nullPartido.get());
-                adminObj.push_back(std::move(nullPartido));
+                Image logoN = LoadImage(((std::string)rutaLogoN).data());
+                nullPartido->logoW = logoN.width * 0.5f;
+                nullPartido->logoH = logoN.height * 0.5f;
+                ImageResize(&logoN, (int)nullPartido->logoW, (int)nullPartido->logoH);
+                ImageFormat(&logoN, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+                nullPartido->logo    = LoadTextureFromImage(logoN);
+                nullPartido->hasLogo = true;
+                UnloadImage(logoN);
             }
-            else return 10;
+            else return 11;
+
+            nullPartido->imageAlpha = 0;
+            nullPartido->status = 0;
+            partidosVec.push_back(nullPartido.get());
+            adminObj.push_back(std::move(nullPartido));
         }
 
         // sinVotar (para estadisticas es el valor ABS. el cual representa el abstencionismo)
@@ -689,8 +745,6 @@ int objectCreation()
         sinVotarPtr = sinVotar.get();
         partidosVec.push_back(sinVotar.get());
         adminObj.push_back(std::move(sinVotar));
-
     }
-
     return 0;
 }

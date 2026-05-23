@@ -76,14 +76,17 @@ void screenConfigUpdate(Screen& currentScreen,            // La función necesit
                     statusCodeUpdating = updateData();                        // Se actualiza la información de la base de datos y se verifica que la configuración sea correcta, el código de estado de la función se guarda en statusCodeUpdating
                     std::string oldConfigSelected = configSelected;           // Se guarda la última pestaña actual dentro de oldConfigSelected, esto para evitar de que el reinicio de los objetos hagan que la pestaña actual cambie
                     statusCodeCreating = objectCreation();
-                    if (statusCodeCreating == 10)                             // Se vuelven a crear los objetos, debido a que deben de ser actualizados dependiendo del código de estado que haya devuelto updateData()
-                    {                                                         // Sin embargo, si el código de estado de objectCreation es igual a 10, significa que hubo un error al cargar las banderas de los partidos, entonces...
+                    if (statusCodeCreating == 10 || statusCodeCreating == 11)             // Se vuelven a crear los objetos, debido a que deben de ser actualizados dependiendo del código de estado que haya devuelto updateData()
+                    {                                                                     // Sin embargo, si el código de estado es 10 (banderas) o 11 (logos/representantes), significa que hubo un error al cargar las imágenes de los partidos, entonces...
                         errorCreating = true;
-                        fs::path pathToLogs = fs::current_path() / "logs.txt";                                                                    // Se busca el archivo logs.txt para escribir el error que hubo
-                        std::ofstream logFile(pathToLogs, std::ios::app);                                                                         // El archivo logs.txt se abre en modo de escritura y se guarda en logFile
-                        logFile << "[ " << std::chrono::system_clock::now() << " ]  | >>> Error al cargar las banderas de los partidos\n";        // Se escribe en el siguiente formato el error: "[ hora ] | >>> error"
-                        logFile.close();                                                                                // Se cierra el archivo
-                        loadConfig();                                                                                   // Se procede a cargar a las barras de entrada la configuraación previa
+                        fs::path pathToLogs = fs::current_path() / "logs.txt";
+                        std::ofstream logFile(pathToLogs, std::ios::app);
+                        if (statusCodeCreating == 10)
+                            logFile << "[ " << std::chrono::system_clock::now() << " ]  | >>> Error al cargar las banderas de los partidos\n";
+                        else
+                            logFile << "[ " << std::chrono::system_clock::now() << " ]  | >>> Error al cargar logos o representantes de los partidos\n";
+                        logFile.close();
+                        loadConfig();
                     }
                     configSelected = oldConfigSelected;                       // Se reasigna configSelected al valor que tenía previamente
 
@@ -339,6 +342,7 @@ void screenConfigDraw(Screen &currentScreen,
         else if (statusCodeUpdating == 20)  errorMessage = "Error desconocido";
         else if (statusCodeUpdating == 127) errorMessage = "Error | La IP del servidor no existe";
         else if (statusCodeCreating == 10)  errorMessage = "Error al cargar las banderas de los partidos";
+        else if (statusCodeCreating == 11)  errorMessage = "Error al cargar logos o representantes de los partidos";
         else if (statusCodeConfig == 1)     errorMessage = "Error | No se encontro el archivo de configuracion";
         else if (statusCodeConfig == 2)     errorMessage = "Error | Faltaron parametros en el archivo de configuracion";
         if (errorConfig)   shortmessage(errorMessage, mediumFontSize, errorConfig, 450);          // Si errorConfig era el que se encontraba en true, llamará a la función shortmessage con errorConfig entre los argumentos

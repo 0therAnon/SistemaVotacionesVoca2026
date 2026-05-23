@@ -145,6 +145,7 @@ int stopArrows          = 0;    // Lo mismo que la variable beam, y stopBackspac
 int maxLenName          = 0;    // Largo máximo de un nombre o texto
 int nlSpacing           = 16;   // Espaciado entre newlines
 int stopCtrls           = 0;    // Igual a la variable stopArrows, pero ahora con las opciones de pegado
+int alphaImg            = 0;    // Almacena el valor alpha de todas las imagenes
 int inputpos            = 0;    // Posición actual con el cursor en una barra de entrada
 int opcSize             = 0;    // Almacena la cantidad de las opciones de la lista desplegable en la pestaña "Actualizar", recomiendo probar lo que ocurre cuando no se usa para que se entienda mejor su función
 int logpos              = 0;    // Posición en el registro de logCommands{}
