@@ -225,7 +225,7 @@ int objectCreation()
     auto continuar = std::make_unique<button>();
     continuar->name   = "Continuar";
     continuar->xloc   = cedulaPtr->xloc * 1.3;
-    continuar->yloc   = screenHeight * 0.7;
+    continuar->yloc   = screenHeight * 0.6;
     continuar->xsize  = screenWidth * 0.16;
     continuar->ysize  = screenHeight * 0.1;
     continuar->status = 0;
@@ -236,7 +236,7 @@ int objectCreation()
     auto regresar = std::make_unique<button>();
     regresar->name   = "Regresar";
     regresar->xloc   = cedulaPtr->xloc * 0.7;
-    regresar->yloc   = screenHeight * 0.7;
+    regresar->yloc   = screenHeight * 0.6;
     regresar->xsize  = screenWidth * 0.16;
     regresar->ysize  = screenHeight * 0.1;
     regresar->status = 0;
@@ -247,9 +247,9 @@ int objectCreation()
     auto backup = std::make_unique<button>();
     backup->name      = "Backup";
     backup->xloc      = screenWidth * 0.01;
-    backup->yloc      = screenHeight * 0.97;
-    backup->xsize     = screenWidth * 0.01;
-    backup->ysize     = screenWidth * 0.01;
+    backup->yloc      = screenHeight * 0.93;
+    backup->xsize     = screenWidth * 0.03;
+    backup->ysize     = screenWidth * 0.03;
     backup->status    = 0;
     backupPtr = backup.get();
     adminObj.push_back(std::move(backup));
@@ -257,10 +257,10 @@ int objectCreation()
     // resetData button
     auto resetData = std::make_unique<button>();
     resetData->name      = "resetData";
-    resetData->xloc      = screenWidth * 0.11;
+    resetData->xloc      = screenWidth * 0.08;
     resetData->yloc      = screenHeight * 0.01;
-    resetData->xsize     = screenWidth * 0.01;
-    resetData->ysize     = screenWidth * 0.01;
+    resetData->xsize     = screenWidth * 0.03;
+    resetData->ysize     = screenWidth * 0.03;
     resetData->status    = 0;
     resetDataPtr = resetData.get();
     adminObj.push_back(std::move(resetData));
@@ -268,10 +268,10 @@ int objectCreation()
     // cambiarFrontend button
     auto cambiarFrontend = std::make_unique<button>();
     cambiarFrontend->name      = "Claro";
-    cambiarFrontend->xloc      = screenWidth* 0.8;
+    cambiarFrontend->xloc      = screenWidth* 0.89;
     cambiarFrontend->yloc      = screenHeight * 0.01;
-    cambiarFrontend->xsize     = screenWidth * 0.01;
-    cambiarFrontend->ysize     = screenWidth * 0.01;
+    cambiarFrontend->xsize     = screenWidth * 0.03;
+    cambiarFrontend->ysize     = screenWidth * 0.03;
     cambiarFrontend->status    = 0;
     cambiarFrontendPtr = cambiarFrontend.get();
     adminObj.push_back(std::move(cambiarFrontend));
@@ -281,8 +281,8 @@ int objectCreation()
     exitAdmin->name   = "Salir";
     exitAdmin->xloc   = screenWidth * 0.01;
     exitAdmin->yloc   = screenHeight * 0.01;
-    exitAdmin->xsize  = screenWidth * 0.01;
-    exitAdmin->ysize  = screenWidth * 0.01;
+    exitAdmin->xsize  = screenWidth * 0.03;
+    exitAdmin->ysize  = screenWidth * 0.03;
     exitAdmin->status = 0;
     exitAdminPtr = exitAdmin.get();
     adminObj.push_back(std::move(exitAdmin));
@@ -290,10 +290,10 @@ int objectCreation()
     // enterConfig button
     auto enterConfig = std::make_unique<button>();
     enterConfig->name   = "Configuracion";
-    enterConfig->xloc   = screenWidth * 0.98;
+    enterConfig->xloc   = screenWidth * 0.96;
     enterConfig->yloc   = screenHeight * 0.01;
-    enterConfig->xsize  = screenWidth * 0.01;
-    enterConfig->ysize  = screenWidth * 0.01;
+    enterConfig->xsize  = screenWidth * 0.03;
+    enterConfig->ysize  = screenWidth * 0.03;
     enterConfig->status = 0;
     enterConfigPtr = enterConfig.get();
     adminObj.push_back(std::move(enterConfig));
@@ -301,10 +301,10 @@ int objectCreation()
     // refresh button
     auto refresh = std::make_unique<button>();
     refresh->name   = "Refrescar";
-    refresh->xloc   = screenWidth  * 0.98;
-    refresh->yloc   = screenHeight * 0.97;
-    refresh->xsize  = screenWidth * 0.01;
-    refresh->ysize  = screenWidth * 0.01;
+    refresh->xloc   = screenWidth  * 0.96;
+    refresh->yloc   = screenHeight * 0.93;
+    refresh->xsize  = screenWidth * 0.03;
+    refresh->ysize  = screenWidth * 0.03;
     refresh->status = 0;
     refreshPtr = refresh.get();
     adminObj.push_back(std::move(refresh));
@@ -404,7 +404,7 @@ int objectCreation()
     std::string namePaths[] = {"Path del font del programa:",
                                "Path del font mono del programa:",
                                "Path del font del informe PDF:",
-                               "Nombre del PDF de salida:"};
+                               "Nombre del informe de salida:"};
     for (int b = 0; b < 4; b++)
     {
         auto pathBar = std::make_unique<inputBar>();

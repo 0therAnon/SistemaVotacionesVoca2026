@@ -246,7 +246,7 @@ std::string ptyfunc(std::string sqlinput,           // Pide como argumento el co
     pid_t pid = forkpty(&master, nullptr, nullptr, nullptr);            // Se ejecuta el proceso hijo, se almacenará el PROCESS IDENTIFIER del proceso en la variable pid
     if (pid == 0)                                                       // Si el pid es igual a 0, significa que la variable ahora almacena el proceso hijo con éxito, entonces...
     {
-        execlp("/usr/bin/mysql", "/usr/bin/mysql",                                        // Ejecutará a mysql con los argumentos que se armaron previamente
+        execlp("/usr/bin/mariadb", "/usr/bin/mariadb",                                        // Ejecutará a mysql/mariadb con los argumentos que se armaron previamente
                userarg.data(), passarg.data(), srvrarg.data(),
                basearg.data(), query.data(), nullptr);                  // Y después de escribir el último argumento hay que escribir un nullptr al final, esto para indicarle a execlp() que ya no se necesitan más argumentos
         _exit(1);                                                       /* Al ejecutar execlp() en el proceso hijo, el proceso hijo nunca debería retornar, y si llega a retornar sería en caso de que haya ocurrido un error

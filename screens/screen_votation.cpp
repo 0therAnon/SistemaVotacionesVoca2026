@@ -38,6 +38,8 @@ void screenVotationUpdate(Screen& currentScreen,        // Necesita la variable 
 void screenVotationDraw(Screen &currentScreen, Screen& oldCurrentScreen, bool& votoBlanco)           // Necesita a la variable votoBlanco para verificar si debe mostrar el mensaje comunicando de que debe votar por una opción
 {
     if (currentScreen == VOTATION) transition("show");
+    showTime(screenWidth*0.01, screenHeight*0.02);
+    DrawTexture(vocaBannerTexture, (screenWidth*0.86f), (screenHeight*0.02f), BLANCO);
     DrawTextEx(fontTtf, "Por favor, escoja un partido por el que desea votar"s.data(),                                            // En el frontend mostrará un mensaje diciendo de que vote por algún partido
                (Vector2){(float)centertext("Por favor, escoja un partido por el que desea votar"s, screenWidth, fontSize),
                           (float)(screenHeight * 0.1)},

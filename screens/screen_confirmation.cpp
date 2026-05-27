@@ -85,6 +85,10 @@ void screenConfirmationDraw(Screen &currentScreen,
                             const std::string& studentName)     // Y necesita el nombre del estudiante
 {
     if (currentScreen == CONFIRMATION) transition("show");
+    showTime(screenWidth*0.01, screenHeight*0.02);
+    DrawTexture(vocaBannerTexture, (screenWidth*0.86f), (screenHeight*0.02f), BLANCO);
+    DrawTexture(vocaBackgroundTexture, (screenWidth/2.0f) - (vocaBackgroundTexture.width / 0.75f),
+                     (screenHeight/2.0f) - (vocaBackgroundTexture.height / 2.0f), BLANCO);
     if (!correctstudent && existstudent || existstudent && partidoSelected.empty())     // Si NO se ha confirmado de que el estudiante sea el correcto pero el estudiante SÍ existe o ya se verificó y la siguiente pantalla será NO será VOTATION
     {
         DrawTextEx(fontTtf, "Verifique si su nombre es correcto:"s.data(),                                                      // Mostrará un mensaje para decirle al estudiante que confirme su nombre
@@ -131,7 +135,7 @@ void screenConfirmationDraw(Screen &currentScreen,
         std::string mselected = "Seleccionó "s + partidoSelected + " es correcto?"s;                                            // Mostrará un mensaje diciendo que confirme el partido por el que votó, y el nombre del partido
         DrawTextEx(fontTtf, mselected.data(),
                    (Vector2){(float)centertext(mselected, screenWidth, fontSize),
-                              (float)(screenHeight * 0.2)},
+                              (float)(screenHeight * 0.4)},
                    fontSize, 2, COLORTEXTO);
         PrettyDrawRectangle(continuarPtr);                                                                                      // Dibujará el botón continuar
         PrettyDrawRectangle(regresarPtr);                                                                                       // Como también dibujará el botón de regresar

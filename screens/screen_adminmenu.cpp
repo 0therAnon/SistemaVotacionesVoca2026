@@ -56,19 +56,20 @@ void screenAdminmenuUpdate(Screen &currentScreen,
             resetDataPtr->status == 4
             )          // Si alguno de esos cuatro botones anteriores llega a recibir el estado 4 (fue presionado) se ejecutará el siguiente bloque de código
         {
-            restartTerminal = true;                                                                       // Se activa el reinicio de las credenciales de la pestaña "Terminal"
-            columnSelected  = columnsVec[0]->id;                                                          // La columna seleccionada ahora será la primera en el vector columnsVec
-
-            for (int z = 0; z < (int)adminButtons.size(); z++) {adminButtons[z]->outLog = "";}            // Este bucle recorre el atributo outLog de cada pestaña, para que en caso de volver a ingresar al panel, se encuentre limpio
-
                 if (exitAdminPtr->status == 4)                          // Si el botón presionado fue el de salir del panel de administración...
                 {
+                    for (int z = 0; z < (int)adminButtons.size(); z++) {adminButtons[z]->outLog = "";}            // Este bucle recorre el atributo outLog de cada pestaña, para que en caso de volver a ingresar al panel, se encuentre limpio
+                    restartTerminal = true;                                                                       // Se activa el reinicio de las credenciales de la pestaña "Terminal"
+                    columnSelected  = columnsVec[0]->id;                                                          // La columna seleccionada ahora será la primera en el vector columnsVec
                     currentScreen = MAINMENU;                           // La pantalla actual ahora será MAINMENU
                     cedulaBarPtr->status = 4;                           // El estado de la barra de entrada cedulaBar, pasará a estado 3, para automáticamente recibir datos de entrada
                     return;                                             // Retorno de la función
                 }
                 else if (refreshPtr->status == 4)                       // Si el botón presionado fue el de refrescar los datos...
                 {
+                    for (int z = 0; z < (int)adminButtons.size(); z++) {adminButtons[z]->outLog = "";}            // Este bucle recorre el atributo outLog de cada pestaña, para que en caso de volver a ingresar al panel, se encuentre limpio
+                    restartTerminal = true;                                                                       // Se activa el reinicio de las credenciales de la pestaña "Terminal"
+                    columnSelected  = columnsVec[0]->id;                                                          // La columna seleccionada ahora será la primera en el vector columnsVec
                     updateData();                                       // En caso de que el botón presionado fue el de actualizar los datos, procederá a ejecutar updateData()
                     objectCreation();                                   // Como se actualizaron los datos, existe la posibilidad de que botones, tablas o columnas ya no existan, entonces se vuelven a crear los objetos
                     return;                                             // Retorno de la función
@@ -87,22 +88,9 @@ void screenAdminmenuUpdate(Screen &currentScreen,
                 }
                 else if (resetDataPtr->status == 4)                     // Si el botón para reiniciar la base de datos fue presionado...
                 {
-                    int errors = 0;                                     // Declara un entero llamado errors, el cual almacenará la suma de los códigos de estado de cada query, si ocurre un error la función sendquery devolverá un número mayor a 0
-                    errors += (int)sendquery(("UPDATE "s + *nameTableEstudiantes + " SET "s + *nameColumnVotoNombre + " = '0'; "s).data(),0,0,0);   // Suma el código de estado de sendquery() y manda la query | EXITOSO = 0 | ERROR = MAYOR A 0
-                    errors += (int)sendquery(("UPDATE "s + *nameTableEstudiantes + " SET " + *nameColumnLabsNombre + " = '0000';"s).data(),0,0,0);  // Reinicia los labs de cada estudiante, la línea anterior reiniciaba los votos de los estudiantes
-                    errors += (int)sendquery(("UPDATE "s + *nameTablePartidos + " SET " + *nameColumnVotosNombre + " = '0';"s).data(),0,0,0);       // Reinicia los votos de los partidos
-                    if ((int)errors == 0)                               // Si el valor de errors es igual a cero (es decir, ningun sendquery() devolvió un código mayor a cero) entonces procederá con la actualización de los datos
-                    {
-                        updateData();                                   // Actualiza la información cargada de la base de datos
-                        objectCreation();                               // Vuelve a crear los objetos
-                        successReset = true;                            // Indica que el reinicio de los datos fue verdadero/exitoso
-                        return;                                         // Retorno de la función
-                    }
-                    else                                                // En caso de que SÍ haya ocurrido un error...
-                    {
-                        errorReset = true;                              // Se indica que hubo un error al reiniciar los datos
-                        return;                                         // Retorno de la función
-                    }
+                    isResettingData = true;
+                    alert(resetDataPtr->name, "backend");
+                    return;
                 }
                 else                                                    // Si el botón presionado no fue ni el de salir ni el de actualizar, entonces significa que fue el de entrar a la configuración, así que procederá a ejecutar lo siguiente
                 {
@@ -131,9 +119,41 @@ void screenAdminmenuUpdate(Screen &currentScreen,
         }
     }
 
+    // Verifica si se desea confirmar el reinicio de la base de datos en caso de que el botón resetData sea presionado
+
+    if (isResettingData)
+    {
+        std::cout<<"IS RESETTING DATA???\n";
+        if (execConfirmation == 100)                              // Llega a este if si aún se está confirmando realizar la query
+            alert(resetDataPtr->name, "backend");
+        else if (execConfirmation == -1)                          // Llega a este if si se desea cancelar el reinicio
+        {
+            execConfirmation = 0;
+            isResettingData = false;
+        }
+        else if (execConfirmation == 1)                           // resetData tiene su propio indicador de que debe ejecutar sus instrucciones
+        {
+            std::cout<<"WAS TRUE\n";
+            execConfirmation = 0;
+            isResettingData = false;
+            int errors = 0;                                 // Declara un entero llamado errors, el cual almacenará la suma de los códigos de estado de cada query, si ocurre un error la función sendquery devolverá un número mayor a 0
+            errors += (int)sendquery(("UPDATE "s + *nameTableEstudiantes + " SET "s + *nameColumnVotoNombre + " = '0'; "s).data(),0,0,0);  // Suma el código de estado de sendquery() y manda la query | EXITOSO = 0 | ERROR = MAYOR A 0
+            errors += (int)sendquery(("UPDATE "s + *nameTableEstudiantes + " SET " + *nameColumnLabsNombre + " = '0000';"s).data(),0,0,0); // Reinicia los labs de cada estudiante, la línea anterior reiniciaba los votos de los estudiantes
+            errors += (int)sendquery(("UPDATE "s + *nameTablePartidos + " SET " + *nameColumnVotosNombre + " = '0';"s).data(),0,0,0);      // Reinicia los votos de los partidos
+            if ((int)errors == 0)                               // Si el valor de errors es igual a cero (es decir, ningun sendquery() devolvió un código mayor a cero) entonces procederá con la actualización de los datos
+            {
+                updateData();                                   // Actualiza la información cargada de la base de datos
+                objectCreation();                               // Vuelve a crear los objetos
+                successReset = true;                            // Indica que el reinicio de los datos fue verdadero/exitoso
+            }
+            else                                                // En caso de que SÍ haya ocurrido un error...
+                errorReset = true;                              // Se indica que hubo un error al reiniciar los datos
+        }
+    }
+
     // ── Pestañas Consultar / Agregar / Actualizar / Borrar ────────────────────
 
-    if (adminSelected != butnames[4] && adminSelected != butnames[5] && adminSelected != butnames[6])     // Si la pestaña presionada no es "Explorar", "Resultados" ni "Terminal", entonces ejecutará este bloque hasta la línea 297 aprox
+    else if (adminSelected != butnames[4] && adminSelected != butnames[5] && adminSelected != butnames[6])     // Si la pestaña presionada no es "Explorar", "Resultados" ni "Terminal", entonces ejecutará este bloque hasta la línea 297 aprox
     {
         for (int co = 0; co < (int)columnsVec.size(); co++)         // A este bucle llamemoslo CICLO FOR PADRE, se encarga de recorrer absolutamente todas las columnas de todas las tablas
         {
@@ -684,6 +704,19 @@ void screenAdminmenuUpdate(Screen &currentScreen,
     }
 }
 
+// ── Función auxiliar para dibujar un ícono centrado sobre un botón ───────────
+static void DrawIconOnButton(Texture2D& icon, nxyxys* btn)
+{
+    if (icon.id == 0) return;                                          // Si la textura no fue cargada correctamente, no dibuja nada
+    float padding = btn->xsize * 0.15f;                                // Padding interior del 15% del ancho del botón
+    Rectangle src  = { 0, 0, (float)icon.width, (float)icon.height }; // Rectángulo fuente: toda la imagen
+    Rectangle dst  = { btn->xloc + padding,                            // Rectángulo destino: el área interior del botón
+                        btn->yloc + padding,
+                        btn->xsize - padding * 2,
+                        btn->ysize - padding * 2 };
+    DrawTexturePro(icon, src, dst, {0, 0}, 0.0f, BLANCO);              // Dibuja la textura escalada al tamaño del botón
+}
+
 // ── Frontend ──────────────────────────────────────────────────────────────────
 void screenAdminmenuDraw(Screen &currentScreen,
                          bool &invalidCredentials,                                              // Llama a variables que
@@ -696,6 +729,7 @@ void screenAdminmenuDraw(Screen &currentScreen,
                          std::string &outResultsMode)                                           // y el tipo de modo para la gráfica en "Resultados"
 {
     if (currentScreen == ADMINMENU) transition("show");
+    showTime(screenWidth*0.16f, screenHeight*0.025);
     exitAdminPtr->status        = isPressed(exitAdminPtr);           // Se empieza a verificar el estado
     enterConfigPtr->status      = isPressed(enterConfigPtr);         // de los botones de salir, actualizar datos
     refreshPtr->status          = isPressed(refreshPtr);             // o ingresar a la pantalla CONFIGURATION
@@ -714,15 +748,23 @@ void screenAdminmenuDraw(Screen &currentScreen,
     drawSelected(adminButtons, littleFontSize, adminSelected);                                  // Empieza a dibujar los botones de las pestañas del panel de administración
     DrawTextEx(fontTtf, "PANEL DE ADMINISTRACIÓN"s.data(),                                      // Y escribe el título "PANEL DE ADMINISTRACIÓN"
                (Vector2){(float)centertext("PANEL DE ADMINISTRACIÓN"s, screenWidth, fontSize),
-                          (float)(screenHeight * 0.03)},
+                          (float)(screenHeight * 0.02)},
                fontSize, 2, COLORTEXTO);
 
     // ── Consultar ──────────────────────────────────────────────────────────────────────────
     if (adminSelected == butnames[0])                                                                         // Si la pestaña actual es "Consultar"
+    {
         oldSelected = drawcolumns(tablesVec, columnsVec, tableSelected, littleFontSize, adminSelected);       // Dibuja las columnas y tablas normalmente
+        DrawTexture(vocaLogoAdminTexture, (screenWidth) - (vocaLogoAdminTexture.width / 0.60f),
+                         (screenHeight/2.0f) - (vocaLogoAdminTexture.height / 1.25f), BLANCO);
+    }
     // ── Agregar ────────────────────────────────────────────────────────────────────────────
     else if (adminSelected == butnames[1])                                                                    // Si la pestaña actual es "Agregar"
+    {
         oldSelected = drawcolumns(tablesVec, columnsVec, tableSelected, littleFontSize, adminSelected);       // Dibuja las columnas y tablas normalmente
+        DrawTexture(vocaLogoAdminTexture, (screenWidth) - (vocaLogoAdminTexture.width / 0.60f),
+                         (screenHeight/2.0f) - (vocaLogoAdminTexture.height / 1.25f), BLANCO);
+    }
     // ── Actualizar ─────────────────────────────────────────────────────────────────────────
     else if (adminSelected == butnames[2])                                                                    // Si la pestaña actual es "Actualizar"
     {
@@ -763,10 +805,16 @@ void screenAdminmenuDraw(Screen &currentScreen,
                 inputfunc("frontend", actBarPtr, opcSelectedPtr->maxlen, modeInput, littleFontSize);          // Para luego mostrar los datos introducidos en la barra de datos de entrada
             }
         }
+        DrawTexture(vocaLogoAdminTexture, (screenWidth) - (vocaLogoAdminTexture.width / 0.60f),
+                         (screenHeight/2.0f) - (vocaLogoAdminTexture.height / 1.25f), BLANCO);
     }
     // ── Borrar ─────────────────────────────────────────────────────────────────────────────
     else if (adminSelected == butnames[3])                                                                    // Si la pestaña actual es "Borrar"
+    {
         oldSelected = drawcolumns(tablesVec, columnsVec, tableSelected, littleFontSize, adminSelected);       // Dibuja las columnas y tablas normalmente
+        DrawTexture(vocaLogoAdminTexture, (screenWidth) - (vocaLogoAdminTexture.width / 0.60f),
+                         (screenHeight/2.0f) - (vocaLogoAdminTexture.height / 1.25f), BLANCO);
+    }
     // ── Explorar ───────────────────────────────────────────────────────────────────────────
     else if (adminSelected == butnames[4])                                                                    // Si la pestaña actual es "Explorar"
     {
@@ -868,6 +916,14 @@ void screenAdminmenuDraw(Screen &currentScreen,
     PrettyDrawRectangle(cambiarFrontendPtr);  // Dibuja el botón para cambiar el modo del frontend de claro a oscuro
     PrettyDrawRectangle(backupPtr);           // Dibuja el botón para refrescar los datos cargados desde la base de datos
     PrettyDrawRectangle(resetDataPtr);        // Dibuja el botón para resetear los datos de la base de datos
+
+    DrawIconOnButton(iconConfig, enterConfigPtr);       // Dibuja el ícono de configuración sobre el botón
+    DrawIconOnButton(iconExit, exitAdminPtr);           // Dibuja el ícono de salir sobre el botón
+    DrawIconOnButton(iconTheme, cambiarFrontendPtr);    // Dibuja el ícono de tema claro/oscuro sobre el botón
+    DrawIconOnButton(iconBackup, backupPtr);            // Dibuja el ícono de backup sobre el botón
+    DrawIconOnButton(iconResetData, resetDataPtr);      // Dibuja el ícono de reset de datos sobre el botón
+    DrawIconOnButton(iconReload, refreshPtr);           // Dibuja el ícono de recargar sobre el botón
+
     if (currentScreen != ADMINMENU && alphaIsZero == false)
     {
         transition("hide");

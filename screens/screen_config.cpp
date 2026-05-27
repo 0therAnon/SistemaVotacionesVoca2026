@@ -245,6 +245,7 @@ void screenConfigDraw(Screen &currentScreen,
                       bool &errorConfig)                // algun mensaje en este frontend
 {
     if (currentScreen == CONFIGURATION) transition("show");
+    showTime(screenWidth*0.16f, screenHeight*0.025);
     DrawRectangle(configPanel[0], adminPanel[1],
                   configPanel[2], configPanel[3], VOCADORADOSUAVE);    // Usa configPanel para dibujarse independientemente del panel de administración
     DrawLineEx((Vector2){configPanel[0], adminPanel[1]},
@@ -252,7 +253,7 @@ void screenConfigDraw(Screen &currentScreen,
                 4.0f, DORADO_BORDE);
     DrawTextEx(fontTtf, "PANEL DE CONFIGURACIÓN"s.data(),                                         // Procede a escribir el título "Panel de Configuración"
                (Vector2){(float)(centertext("PANEL DE CONFIGURACIÓN"s, screenWidth, fontSize)),
-                          (float)(screenHeight * 0.03)},
+                          (float)(screenHeight * 0.02)},
                fontSize, 2, COLORTEXTO);                                                               // BLANCO porque el título flota sobre el fondo negro
 
     // Se actualiza el estado de cada botón de pestaña cada frame para detectar hover correctamente

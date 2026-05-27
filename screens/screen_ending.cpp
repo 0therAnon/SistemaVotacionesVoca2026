@@ -28,6 +28,8 @@ void screenEndingUpdate(Screen& currentScreen,      // Necesita a currentScreen 
 void screenEndingDraw(Screen &currentScreen, int verifyvote)
 {
     if (currentScreen == ENDING) transition("show");
+    showTime(screenWidth*0.01, screenHeight*0.02);
+    DrawTexture(vocaBannerTexture, (screenWidth*0.86f), (screenHeight*0.02f), BLANCO);
     if (verifyvote == 0)                            // Si verifyvote, el cual almacena el largo de la respuesta que verifica si ya el estudiante ha votado o no, es igual a cero, significa que el estudiante ya votó entonces...
     {
         DrawTextEx(fontTtf, "Ya usted ha votado, no puede hacerlo de nuevo",                                                  // Dibuja el mensaje diciendole al estudiante de que ya ha votado

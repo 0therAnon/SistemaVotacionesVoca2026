@@ -3,6 +3,8 @@
 #include "../db/database.hpp"
 #include <string>
 #include <vector>
+#include <format>
+#include <chrono>
 
 int centertext(std::string message, double width, double fontsize)              // Esta función se encarga de centrar texto, de argumentos tiene al mensaje a centrar, el tamaño en pixeles para centrar el texto, y el tamaño del font de la letra
 {
@@ -447,14 +449,18 @@ int alert(std::string bontonActual, std::string mode)
             alertQuery.insert(0, "SELECT COUNT(*) FROM "s + tableSelected  + " "s); // ahora a la cadena recien creada le agrega "SELECT COUNT(*)". Ej: En vez de decir "FROM Estudiantes WHERE..." ahora dice "SELECT COUNT(*) FROM Estudiantes WHERE..."
             std::cout<<alertQuery<<"\n";
             sendquery(alertQuery.data(),0,0);                               // Ejecuta la query enviando la cadena recien creada, esta cadena lo que hace es obtener la cantidad de resultados que obtendría con el SELECT original modificado
-            warningMessage = "Está a punto de ejecutar una query\nque actualizará "s + outQuery + " registros,\n¿seguro que desea proceder?";
+            warningMessage = "Está por ejecutar una query que actualizará "s + outQuery + "registros, ¿seguro que desea proceder?";
         }
         else if (bontonActual == adminButtons[3]->name)       // Si la pestaña actual es "Borrar", entonces...
         {
             std::string alertQuery = adminButtons[3]->selfquery.substr(6);  // Crea una cadena que elimina los 6 primeros caracteres de la query original, Ej: ORIGINAL: DELETE FROM Estudiantes WHERE... | MODIFICADA: FROM Estudiantes WHERE...
             alertQuery.insert(0, "SELECT COUNT(*)");                        // y ahora a la cadena recien creada le agrega "SELECT COUNT(*)". Ej: En vez de decir "FROM Estudiantes WHERE..." ahora dice "SELECT COUNT(*) FROM Estudiantes WHERE..."
             sendquery(alertQuery.data(),0,0);                               // Ejecuta la query enviando la cadena recien creada, esta cadena lo que hace es obtener la cantidad de resultados que obtendría con el DELETE original modificado
-            warningMessage = "Está a punto de ejecutar una query\nque eliminará "s + outQuery + " registros,\n¿seguro que desea proceder?";
+            warningMessage = "Está por ejecutar una query que eliminará "s + outQuery + "registros, ¿seguro que desea proceder?";
+        }
+        else if (bontonActual == resetDataPtr->name)
+        {
+            warningMessage = "Está a punto de reiniciar la base de datos\ny perder ABSOLUTAMENTE TODA la información\n¿ESTÁ REALMENTE SEGURO?";
         }
     }
     if (mode == "backend")                                                  // Si el modo es "backend"...
@@ -533,4 +539,11 @@ int transition(std::string mode)
     if (alphaIsZero) return -1;                 // La función devuelve un código de estado -1 en caso de que el alpha de todos los colores sea 0
     else if (alphaIsFull) return 1;             // La función devuelve un código de estado 1 en caso de que el alpha de todos los colores sea 255
     return 0;                                   // En caso de que ninguna de los dos if anteriores se cumplan, simplemente devuelve 0
+}
+
+void showTime(float xloc, float yloc)
+{
+    auto now = std::chrono::system_clock::now();
+    std::string nowStr = std::format("{:%Y-%m-%d | %H:%M:%S}", now);
+    DrawTextEx(fontTtf, nowStr.data(), (Vector2){xloc, yloc}, littleFontSize, 2, COLORTEXTO);
 }

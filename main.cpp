@@ -34,9 +34,46 @@ int main(void)
     fontTtf = LoadFontEx("./fonts/Inter_24pt-Regular.ttf", fontSize, 0, 250); // Es la variable que tendrá el font almacenado, busca la ruta del archivo del font a usar, se le pasa el tamaño (fontSize) como argumento
     monoTtf = LoadFontEx("./fonts/GoMonoNerdFont-Regular.ttf", fontSize, 0, 250); // Es la variable que tendrá el font almacenado, busca la ruta del archivo del font a usar, se le pasa el tamaño (fontSize) como argumento
 
+    // ── Texturas e íconos ────────────────────────────────────
     ImageFormat(&vocaLogo, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);    // Modifico el formato del logo del Voca, esto para permitir la transparencia de la imagen en las transiciones
     vocaLogoTexture = LoadTextureFromImage(vocaLogo);             // La imagen se convierte a textura, para que raylib la procese mejor y aplique su efecto de desaparecer
     UnloadImage(vocaLogo);                                        // Luego, se procede a descargar la imagen vocaLogo, ya que no se necesita más
+
+    ImageFormat(&vocaLogoAdmin, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+    vocaLogoAdminTexture = LoadTextureFromImage(vocaLogoAdmin);
+    UnloadImage(vocaLogoAdmin);
+
+    ImageFormat(&vocaBanner, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+    vocaBannerTexture = LoadTextureFromImage(vocaBanner);
+    UnloadImage(vocaBanner);
+
+    ImageFormat(&vocaBackground, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+    vocaBackgroundTexture = LoadTextureFromImage(vocaBackground);
+    UnloadImage(vocaBackground);
+
+    ImageFormat(&iconExitImg, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+    iconExit = LoadTextureFromImage(iconExitImg);
+    UnloadImage(iconExitImg);
+
+    ImageFormat(&iconConfigImg, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+    iconConfig = LoadTextureFromImage(iconConfigImg);
+    UnloadImage(iconConfigImg);
+
+    ImageFormat(&iconThemeImg, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+    iconTheme = LoadTextureFromImage(iconThemeImg);
+    UnloadImage(iconThemeImg);
+
+    ImageFormat(&iconBackupImg, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+    iconBackup = LoadTextureFromImage(iconBackupImg);
+    UnloadImage(iconBackupImg);
+
+    ImageFormat(&iconResetDataImg, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+    iconResetData = LoadTextureFromImage(iconResetDataImg);
+    UnloadImage(iconResetDataImg);
+
+    ImageFormat(&iconReloadImg, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+    iconReload = LoadTextureFromImage(iconReloadImg);
+    UnloadImage(iconReloadImg);
 
     // ── Per-loop state ────────────────────────────────────────────────────────
     std::string outResultsMode      = "percentages";   // Verifica si el modo de salida de la pestaña "Resultados" tiene que ser en porcentajes o sino en cantidades

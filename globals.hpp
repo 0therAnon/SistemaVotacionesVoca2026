@@ -98,6 +98,7 @@ extern float fontSize;
 extern float warn[4];
 
 extern bool adminAuthenticated;
+extern bool isResettingData;
 extern bool backupReleased;
 extern bool pdfRandomError;
 extern bool pdfFontError;
@@ -184,3 +185,23 @@ extern button*    btnNoPtr;
 // ── Imágenes y texturas ───────────────────────────────────────────────────────
 extern Image vocaLogo;
 extern Texture2D vocaLogoTexture;
+extern Image vocaLogoAdmin;
+extern Texture2D vocaLogoAdminTexture;
+extern Image vocaBanner;
+extern Texture2D vocaBannerTexture;
+extern Image vocaBackground;
+extern Texture2D vocaBackgroundTexture;
+
+// ── Íconos del panel de administración ───────────────────────────────────────
+extern Image iconExitImg;
+extern Texture2D iconExit;
+extern Image iconConfigImg;
+extern Texture2D iconConfig;
+extern Image iconThemeImg;
+extern Texture2D iconTheme;
+extern Image iconBackupImg;
+extern Texture2D iconBackup;
+extern Image iconResetDataImg;
+extern Texture2D iconResetData;
+extern Image iconReloadImg;
+extern Texture2D iconReload;

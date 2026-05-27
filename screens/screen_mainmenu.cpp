@@ -57,6 +57,10 @@ void screenMainmenuUpdate(Screen& currentScreen,          // Necesita la variabl
 void screenMainmenuDraw(Screen& currentScreen)
 {
     if (currentScreen == MAINMENU) transition("show");
+    showTime(screenWidth*0.01, screenHeight*0.02);
+    DrawTexture(vocaBannerTexture, (screenWidth*0.86f), (screenHeight*0.02f), BLANCO);
+    DrawTexture(vocaBackgroundTexture, (screenWidth/2.0f) - (vocaBackgroundTexture.width / 0.75f),
+                     (screenHeight/2.0f) - (vocaBackgroundTexture.height / 2.0f), BLANCO);
     DrawTextEx(fontTtf, "Digite su cedula en este campo"s.data(),                                                       // Se muestra un mensaje diciendo de que por favor digite la cédula en la barra
                (Vector2){(float)centertext("Digite su cedula en este campo"s, screenWidth, fontSize),
                           (float)(screenHeight * 0.23)},
