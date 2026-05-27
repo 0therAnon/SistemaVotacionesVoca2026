@@ -47,13 +47,15 @@ void screenAdminmenuUpdate(Screen &currentScreen,
         cambiarFrontendPtr->status  = isPressed(cambiarFrontendPtr);     // o cambiar el modo del frontend
         backupPtr->status           = isPressed(backupPtr);              // o ejecutar un backup
         resetDataPtr->status        = isPressed(resetDataPtr);           // o reiniciar la base de datos
+        closeProgramPtr->status     = isPressed(closeProgramPtr);        // o cerrar el programa
 
         if (exitAdminPtr->status == 4 ||
             enterConfigPtr->status == 4 ||
             refreshPtr->status == 4 ||
             cambiarFrontendPtr->status == 4 ||
             backupPtr->status == 4 ||
-            resetDataPtr->status == 4
+            resetDataPtr->status == 4 ||
+            closeProgramPtr->status == 4
             )          // Si alguno de esos cuatro botones anteriores llega a recibir el estado 4 (fue presionado) se ejecutará el siguiente bloque de código
         {
                 if (exitAdminPtr->status == 4)                          // Si el botón presionado fue el de salir del panel de administración...
@@ -92,13 +94,18 @@ void screenAdminmenuUpdate(Screen &currentScreen,
                     alert(resetDataPtr->name, "backend");
                     return;
                 }
-                else                                                    // Si el botón presionado no fue ni el de salir ni el de actualizar, entonces significa que fue el de entrar a la configuración, así que procederá a ejecutar lo siguiente
+                else if (enterConfigPtr->status == 4)                   // Si el botón presionado no fue ni el de salir ni el de actualizar, entonces significa que fue el de entrar a la configuración, así que procederá a ejecutar lo siguiente
                 {
                     fromAdmin = true;                                   // fromAdmin pasará a true, dando a entender al programa de que se quiso entrar a la pantalla de configuración desde el panel de administración
                     loadConfig();                                       // loadConfig() procederá a cargar los datos que se pudieron cargar del archivo de configuración a las barras de entrada, para no tener que escribir toda la configuración
                     currentScreen = CONFIGURATION;                      // La pantalla actual ahora será CONFIGURATION
                     configSelected = configbuttons[0]->name;            // La pestaña seleccionada será la primera en el vector configButtons ("Credenciales") para aparecer en esta pestaña automáticamente
                     return;                                             // Retorno de la función
+                }
+                else                                                    // Si no fue ninguno de los anteriores, entonces fue el botón de cerrar el programa
+                {
+                    closeAll = true;
+                    return;
                 }
         }
 
@@ -704,19 +711,6 @@ void screenAdminmenuUpdate(Screen &currentScreen,
     }
 }
 
-// ── Función auxiliar para dibujar un ícono centrado sobre un botón ───────────
-static void DrawIconOnButton(Texture2D& icon, nxyxys* btn)
-{
-    if (icon.id == 0) return;                                          // Si la textura no fue cargada correctamente, no dibuja nada
-    float padding = btn->xsize * 0.15f;                                // Padding interior del 15% del ancho del botón
-    Rectangle src  = { 0, 0, (float)icon.width, (float)icon.height }; // Rectángulo fuente: toda la imagen
-    Rectangle dst  = { btn->xloc + padding,                            // Rectángulo destino: el área interior del botón
-                        btn->yloc + padding,
-                        btn->xsize - padding * 2,
-                        btn->ysize - padding * 2 };
-    DrawTexturePro(icon, src, dst, {0, 0}, 0.0f, BLANCO);              // Dibuja la textura escalada al tamaño del botón
-}
-
 // ── Frontend ──────────────────────────────────────────────────────────────────
 void screenAdminmenuDraw(Screen &currentScreen,
                          bool &invalidCredentials,                                              // Llama a variables que
@@ -736,6 +730,8 @@ void screenAdminmenuDraw(Screen &currentScreen,
     cambiarFrontendPtr->status  = isPressed(cambiarFrontendPtr);     // o cambiar el modo del frontend
     backupPtr->status           = isPressed(backupPtr);              // o ejecutar un backup de la base de datos
     resetDataPtr->status        = isPressed(resetDataPtr);           // o ejecutar un backup de la base de datos
+    closeProgramPtr->xloc       = screenWidth * 0.82;
+    closeProgramPtr->status     = isPressed(closeProgramPtr);        // o salir del programa
     // Se actualiza el estado de cada botón no seleccionado cada frame para que PrettyDrawRectangle
     // detecte el hover y cambie el grosor del borde dorado correctamente
     for (int i = 0; i < (int)adminButtons.size(); i++)
@@ -916,6 +912,7 @@ void screenAdminmenuDraw(Screen &currentScreen,
     PrettyDrawRectangle(cambiarFrontendPtr);  // Dibuja el botón para cambiar el modo del frontend de claro a oscuro
     PrettyDrawRectangle(backupPtr);           // Dibuja el botón para refrescar los datos cargados desde la base de datos
     PrettyDrawRectangle(resetDataPtr);        // Dibuja el botón para resetear los datos de la base de datos
+    PrettyDrawRectangle(closeProgramPtr);      // Dibuja el botón para salir del programa
 
     DrawIconOnButton(iconConfig, enterConfigPtr);       // Dibuja el ícono de configuración sobre el botón
     DrawIconOnButton(iconExit, exitAdminPtr);           // Dibuja el ícono de salir sobre el botón
@@ -923,6 +920,7 @@ void screenAdminmenuDraw(Screen &currentScreen,
     DrawIconOnButton(iconBackup, backupPtr);            // Dibuja el ícono de backup sobre el botón
     DrawIconOnButton(iconResetData, resetDataPtr);      // Dibuja el ícono de reset de datos sobre el botón
     DrawIconOnButton(iconReload, refreshPtr);           // Dibuja el ícono de recargar sobre el botón
+    DrawIconOnButton(iconClose, closeProgramPtr);            // Dibuja el ícono de cerrar el programa
 
     if (currentScreen != ADMINMENU && alphaIsZero == false)
     {

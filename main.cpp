@@ -74,6 +74,10 @@ int main(void)
     ImageFormat(&iconReloadImg, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
     iconReload = LoadTextureFromImage(iconReloadImg);
     UnloadImage(iconReloadImg);
+    
+    ImageFormat(&iconCloseImg, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+    iconClose = LoadTextureFromImage(iconCloseImg);
+    UnloadImage(iconCloseImg);
 
     // ── Per-loop state ────────────────────────────────────────────────────────
     std::string outResultsMode      = "percentages";   // Verifica si el modo de salida de la pestaña "Resultados" tiene que ser en porcentajes o sino en cantidades
@@ -103,7 +107,7 @@ int main(void)
     int   verifyvote        = 0;            // Verifica si el partido por el que se desea votar es el correcto, esto también desde la ventana CONFIRMATION
 
     // ── Main loop ─────────────────────────────────────────────────────────────
-    while (!WindowShouldClose())    // Mientras no se haga una petición para cerrar la ventana (presionar tecla ESC), se ejecutará el siguiente código hasta la línea 144...
+    while (!closeAll)    // Será true hasta que el botón closeProgram sea presionado
     {
         // Handle resize
         if (IsWindowResized())  // Si la ventana cambió de tamaño...

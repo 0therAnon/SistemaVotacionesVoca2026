@@ -173,3 +173,4 @@ std::vector<double> statistics(std::string mode, std::string outputMode,
 int         alert(std::string botonActual, std::string mode);
 int         transition(std::string mode);
 void        showTime(float xloc, float yloc);
+void        DrawIconOnButton(Texture2D& icon, nxyxys* btn);

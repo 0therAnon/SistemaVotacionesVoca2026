@@ -544,6 +544,20 @@ int transition(std::string mode)
 void showTime(float xloc, float yloc)
 {
     auto now = std::chrono::system_clock::now();
-    std::string nowStr = std::format("{:%Y-%m-%d | %H:%M:%S}", now);
+    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+    std::string nowStr = std::format("{:%Y-%m-%d | %H:%M:%S}", now_ms);
     DrawTextEx(fontTtf, nowStr.data(), (Vector2){xloc, yloc}, littleFontSize, 2, COLORTEXTO);
+}
+
+// ── Función auxiliar para dibujar un ícono centrado sobre un botón ───────────
+void DrawIconOnButton(Texture2D& icon, nxyxys* btn)
+{
+    if (icon.id == 0) return;                                          // Si la textura no fue cargada correctamente, no dibuja nada
+    float padding = btn->xsize * 0.15f;                                // Padding interior del 15% del ancho del botón
+    Rectangle src  = { 0, 0, (float)icon.width, (float)icon.height }; // Rectángulo fuente: toda la imagen
+    Rectangle dst  = { btn->xloc + padding,                            // Rectángulo destino: el área interior del botón
+                        btn->yloc + padding,
+                        btn->xsize - padding * 2,
+                        btn->ysize - padding * 2 };
+    DrawTexturePro(icon, src, dst, {0, 0}, 0.0f, BLANCO);              // Dibuja la textura escalada al tamaño del botón
 }

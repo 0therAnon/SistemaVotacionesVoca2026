@@ -34,6 +34,16 @@ void screenConfigUpdate(Screen& currentScreen,            // La función necesit
             if (configbuttons[i]->status == 4) configSelected = configbuttons[i]->name;         // Y si la pestaña actual en el bucle fue la que recibió el clic entonces actualizará a configSelected para que almacene la nueva pestaña seleccionada
         }
 
+
+        // Botón closeProgram, el cual se encarga de cerrar el programa
+
+        closeProgramPtr->status = isPressed(closeProgramPtr);
+        if (closeProgramPtr->status == 4)
+        {
+            closeAll = true;
+            return;
+        }
+
         // Botón saveConfig, el cual se encarga de guardar la configuración en el archivo de configuración, y de paso cargar la nueva configuración al programa
 
         saveConfigPtr->status = isPressed(saveConfigPtr);
@@ -245,7 +255,9 @@ void screenConfigDraw(Screen &currentScreen,
                       bool &errorConfig)                // algun mensaje en este frontend
 {
     if (currentScreen == CONFIGURATION) transition("show");
-    showTime(screenWidth*0.16f, screenHeight*0.025);
+    closeProgramPtr->xloc       = screenWidth * 0.96;
+    closeProgramPtr->status     = isPressed(closeProgramPtr);           // o salir del programa
+    showTime(screenWidth*0.01f, screenHeight*0.025);
     DrawRectangle(configPanel[0], adminPanel[1],
                   configPanel[2], configPanel[3], VOCADORADOSUAVE);    // Usa configPanel para dibujarse independientemente del panel de administración
     DrawLineEx((Vector2){configPanel[0], adminPanel[1]},
@@ -350,6 +362,10 @@ void screenConfigDraw(Screen &currentScreen,
         else if(errorUpdating)  shortmessage(errorMessage, mediumFontSize, errorUpdating, 450);   // en caso de que sea errorUpdating, llamará a errorUpdating
         else shortmessage(errorMessage, mediumFontSize, errorCreating, 450);                      // Como última opción, entonces llamará a errorCreating
     }
+
+    PrettyDrawRectangle(closeProgramPtr);                    // Dibuja el botón para salir del programa
+    DrawIconOnButton(iconClose, closeProgramPtr);            // Dibuja el ícono de cerrar el programa
+
     if (currentScreen != CONFIGURATION && alphaIsZero == false)
     {
         transition("hide");

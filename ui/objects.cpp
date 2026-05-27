@@ -276,6 +276,17 @@ int objectCreation()
     cambiarFrontendPtr = cambiarFrontend.get();
     adminObj.push_back(std::move(cambiarFrontend));
 
+    // closeProgram button
+    auto closeProgram = std::make_unique<button>();
+    closeProgram->name   = "Salir del Programa";
+    closeProgram->xloc   = screenWidth * 0.82;
+    closeProgram->yloc   = screenHeight * 0.01;
+    closeProgram->xsize  = screenWidth * 0.03;
+    closeProgram->ysize  = screenWidth * 0.03;
+    closeProgram->status = 0;
+    closeProgramPtr = closeProgram.get();
+    adminObj.push_back(std::move(closeProgram));
+
     // exitAdmin button
     auto exitAdmin = std::make_unique<button>();
     exitAdmin->name   = "Salir";
@@ -403,7 +414,7 @@ int objectCreation()
     // Barras de configuracion "Paths"
     std::string namePaths[] = {"Path del font del programa:",
                                "Path del font mono del programa:",
-                               "Path del font del informe PDF:",
+                               "Path del font del informe:",
                                "Nombre del informe de salida:"};
     for (int b = 0; b < 4; b++)
     {

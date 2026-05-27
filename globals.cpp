@@ -127,6 +127,7 @@ bool tabRestart         = false;  // Sirve como activador en las funciones de mo
 bool nullOption         = false;  // Verifica si existe un partido NULO en las tablas existentes de la base de datos MySQL
 bool darkMode           = false;  // Verifica si el modo de usuario del sistema es modo oscuro, en caso de que sea falso significa que es modo claro, el modo claro es el predeterminado
 bool pdfError           = false;  // Verifica si hubo un error con la creación del PDF
+bool closeAll           = false;  // Variable para verificar si se debe de cerrar el programa
 bool showBeam           = true;   // Verifica si la línea de la barra de entrada tiene que mostrarse o no, para dar el efecto de que la línea está parpaedeando
 
 int statusCodeUpdating  = 100;  // Es la variable que almacenará el número de retorno de la función updateData(), cada número especifica un error distinto en la función o si todo funcionó correctamente
@@ -183,6 +184,7 @@ inputBar*  cedulaBarPtr         = nullptr;
 inputBar*  actBarPtr            = nullptr;
 parties*   sinVotarPtr          = nullptr;
 button*    cambiarFrontendPtr   = nullptr;
+button*    closeProgramPtr       = nullptr;
 button*    enterConfigPtr       = nullptr;
 button*    saveConfigPtr        = nullptr;
 button*    resetDataPtr         = nullptr;
@@ -223,3 +225,5 @@ Image iconResetDataImg = LoadImage("./assets/icon_resetdata.png");    // Ícono 
 Texture2D iconResetData;
 Image iconReloadImg    = LoadImage("./assets/icon_reload.png");    // Ícono para el botón de resetear datos
 Texture2D iconReload;
+Image iconCloseImg    = LoadImage("./assets/icon_close.png");      // Ícono para el botón de cerrar el programa
+Texture2D iconClose;
