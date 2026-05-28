@@ -12,11 +12,16 @@
 
 int main(void)
 {
+    TraceLog(LOG_INFO, "Versión de Raylib actual: %s", RAYLIB_VERSION);
     // FLAG_WINDOWS_TOPMOST:    Hace que la ventana siempre esté encima de todas las demás
     // FLAG_WINDOW_UNDECORATED: Hace que el titulo, y los bordes de la ventana se eliminen
     // FLAG_WINDOW_RESIZABLE:   Permite al usuario poder modificar el tamaño de la ventana
     SetConfigFlags(FLAG_WINDOW_TOPMOST | FLAG_WINDOW_UNDECORATED | FLAG_WINDOW_RESIZABLE);      // Configura esas opciones mencionadas anteriormente para la parte gráfica
     InitWindow(GetScreenWidth(), GetScreenHeight(), "Programa de Votaciones VOCA 2026");        // GetScreenWidth() y GetScreenHeight() obtienen el tamaño de la pantalla en alto y ancho, y crean una ventana de ese tamaño con ese título
+
+    // Fijamos el directorio de trabajo a la carpeta del .exe para que las rutas relativas ./assets/, ./fonts/ y .\bin\ funcionen al abrir con doble clic.
+    ChangeDirectory(GetApplicationDirectory());
+
     SetWindowMinSize(GetMonitorWidth(0) / 2, GetMonitorHeight(0) / 2);  // Configura el tamaño mínimo de la ventana, el cual es la mitad del tamaño del monitor en ancho y alto
     SetWindowMaxSize(GetMonitorWidth(0), GetMonitorHeight(0));          // Configura el tamaño máximo de la ventana, el cual es el tamaño completo del monitor en ancho y alto
 
@@ -35,6 +40,29 @@ int main(void)
     monoTtf = LoadFontEx("./fonts/GoMonoNerdFont-Regular.ttf", fontSize, 0, 250); // Es la variable que tendrá el font almacenado, busca la ruta del archivo del font a usar, se le pasa el tamaño (fontSize) como argumento
 
     // ── Texturas e íconos ────────────────────────────────────
+    // Cargamos las imágenes aquí (no como globales), ya con el directorio de trabajo correcto, para que las rutas relativas funcionen en Linux y Windows.
+    vocaLogo        = LoadImage("./assets/vocaLogo.png");
+    vocaLogoAdmin   = LoadImage("./assets/vocaLogoAdmin.png");
+    vocaBanner      = LoadImage("./assets/vocaBanner.png");
+    vocaBackground  = LoadImage("./assets/vocaBackground.png");
+    iconExitImg     = LoadImage("./assets/icon_exit.png");
+    iconConfigImg   = LoadImage("./assets/icon_config.png");
+    iconThemeImg    = LoadImage("./assets/icon_theme.png");
+    iconBackupImg   = LoadImage("./assets/icon_backup.png");
+    iconResetDataImg= LoadImage("./assets/icon_resetdata.png");
+    iconReloadImg   = LoadImage("./assets/icon_reload.png");
+    iconCloseImg    = LoadImage("./assets/icon_close.png");
+
+    Image iconImg = LoadImage("./assets/vocaLogo.png");
+    if (iconImg.width > 0)                                        // Solo si cargó bien
+    {
+        ImageFormat(&iconImg, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8); // raylib requiere este formato para el icono
+        ImageResize(&iconImg, 256, 256);                          // Tamaño base del icono (el SO lo reescala)
+        SetWindowIcon(iconImg);                                   // Aplica el icono a la ventana
+        UnloadImage(iconImg);                                     // Libera la imagen del icono (ya fue copiada internamente)
+    }
+
+
     ImageFormat(&vocaLogo, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);    // Modifico el formato del logo del Voca, esto para permitir la transparencia de la imagen en las transiciones
     vocaLogoTexture = LoadTextureFromImage(vocaLogo);             // La imagen se convierte a textura, para que raylib la procese mejor y aplique su efecto de desaparecer
     UnloadImage(vocaLogo);                                        // Luego, se procede a descargar la imagen vocaLogo, ya que no se necesita más
@@ -74,7 +102,7 @@ int main(void)
     ImageFormat(&iconReloadImg, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
     iconReload = LoadTextureFromImage(iconReloadImg);
     UnloadImage(iconReloadImg);
-    
+
     ImageFormat(&iconCloseImg, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
     iconClose = LoadTextureFromImage(iconCloseImg);
     UnloadImage(iconCloseImg);
@@ -105,6 +133,8 @@ int main(void)
     bool rqst                   = false;    // Verifica si se tiene que hacer una petición/request en la pestaña "Explorar" para actualizar los datos
 
     int   verifyvote        = 0;            // Verifica si el partido por el que se desea votar es el correcto, esto también desde la ventana CONFIRMATION
+
+    objectCreation();
 
     // ── Main loop ─────────────────────────────────────────────────────────────
     while (!closeAll)    // Será true hasta que el botón closeProgram sea presionado

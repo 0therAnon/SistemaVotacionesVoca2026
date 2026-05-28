@@ -70,10 +70,10 @@ void screenLogoDraw(Screen& currentScreen)
 {
     if (currentScreen == LOGO) transition("show");
     DrawTexture(vocaLogoTexture, (screenWidth/2.0f) - (vocaLogoTexture.width / 2.0f),
-                                 (screenHeight/2.0f) - (vocaLogoTexture.height / 2.0f), BLANCO);
+                                 (screenHeight/2.0f) - (vocaLogoTexture.height / 1.9f), BLANCO);
     DrawTextEx(fontTtf, ("Bienvenido al sistema de votaciones del VOCA 2026"s).data(),
                         (Vector2){(float)centertext("Bienvenido al sistema de votaciones del voca 2026"s, screenWidth, fontSize),
-                                   (float)(screenHeight*0.8)}, fontSize, 2, COLORTEXTO);
+                                   (float)(screenHeight*0.7)}, fontSize, 2, COLORTEXTO);
     if (currentScreen != LOGO && alphaIsZero == false)
     {
         transition("hide");

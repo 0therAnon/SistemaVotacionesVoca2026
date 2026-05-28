@@ -5,6 +5,7 @@
 #include <vector>
 #include <format>
 #include <chrono>
+#include <ctime>     // Para std::localtime, std::time_t y std::strftime (hora local)
 
 int centertext(std::string message, double width, double fontsize)              // Esta función se encarga de centrar texto, de argumentos tiene al mensaje a centrar, el tamaño en pixeles para centrar el texto, y el tamaño del font de la letra
 {
@@ -544,8 +545,18 @@ int transition(std::string mode)
 void showTime(float xloc, float yloc)
 {
     auto now = std::chrono::system_clock::now();
-    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
-    std::string nowStr = std::format("{:%Y-%m-%d | %H:%M:%S}", now_ms);
+    std::time_t t = std::chrono::system_clock::to_time_t(now);   // Segundos desde época (UTC)
+    std::tm localTm = *std::localtime(&t);                       // Convierte a hora local del sistema
+
+    // Milisegundos de la fracción de segundo actual
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                  now.time_since_epoch()).count() % 1000;
+
+    char timeBuf[64];
+    std::strftime(timeBuf, sizeof(timeBuf), "%Y-%m-%d | %H:%M:%S", &localTm);  // Formatea la parte de fecha/hora
+    std::string nowStr = std::string(timeBuf) + "." +
+                         std::format("{:03}", (int)ms);          // Añade .mmm (milisegundos con 3 dígitos)
+
     DrawTextEx(fontTtf, nowStr.data(), (Vector2){xloc, yloc}, littleFontSize, 2, COLORTEXTO);
 }
 

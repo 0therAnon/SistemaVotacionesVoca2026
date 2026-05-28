@@ -93,11 +93,11 @@ void screenConfirmationDraw(Screen &currentScreen,
     {
         DrawTextEx(fontTtf, "Verifique si su nombre es correcto:"s.data(),                                                      // Mostrará un mensaje para decirle al estudiante que confirme su nombre
                    (Vector2){(float)centertext("Verifique si su nombre es correcto:"s, screenWidth, fontSize),
-                              (float)(screenHeight * 0.2)},
+                              (float)(screenHeight * 0.3)},
                    fontSize, 2, COLORTEXTO);
         DrawTextEx(fontTtf, studentName.data(),                                                                                 // Luego, mostrará el nombre del estudiante
                    (Vector2){(float)centertext(studentName, screenWidth, fontSize),
-                              (float)(screenHeight * 0.3)},
+                              (float)(screenHeight * 0.4)},
                    fontSize, 2, COLORTEXTO);
         PrettyDrawRectangle(continuarPtr);                                                                                      // Dibujará el botón de continuar
         PrettyDrawRectangle(regresarPtr);                                                                                       // Como también dibujará el botón de regresar
@@ -112,17 +112,17 @@ void screenConfirmationDraw(Screen &currentScreen,
     }
     else if (!existstudent)                           // Si el estudiante NO existe en la base de datos...
     {
-        DrawTextEx(fontTtf, "Usted no se encontro en la base de datos del VOCA"s.data(),                                        // Mostrará un mensaje diciendole al estudiante que no se encontró en la base de datos
+        DrawTextEx(fontTtf, "Usted no se encontró en la base de datos del VOCA"s.data(),                                        // Mostrará un mensaje diciendole al estudiante que no se encontró en la base de datos
                    (Vector2){(float)centertext("Usted no se encontro en la base de datos del VOCA"s, screenWidth, fontSize),
-                              (float)(screenHeight * 0.2)},
-                   fontSize, 2, COLORTEXTO);
-        DrawTextEx(fontTtf, "Verifique que su cedula fue digitada correctamente:"s.data(),                                      // Y que verifique que digitó bien la cédula
-                   (Vector2){(float)centertext("Verifique que su cedula fue digitada correctamente:"s, screenWidth, fontSize),
                               (float)(screenHeight * 0.3)},
+                   fontSize, 2, COLORTEXTO);
+        DrawTextEx(fontTtf, "Verifique que su cédula fue digitada corréctamente:"s.data(),                                      // Y que verifique que digitó bien la cédula
+                   (Vector2){(float)centertext("Verifique que su cedula fue digitada correctamente:"s, screenWidth, fontSize),
+                              (float)(screenHeight * 0.4)},
                    fontSize, 2, COLORTEXTO);
         DrawTextEx(fontTtf, cedulaBarPtr->input.data(),                                                                         // Y mostrará la cédula digitada
                    (Vector2){(float)centertext(cedulaBarPtr->input, screenWidth, fontSize),
-                              (float)(screenHeight * 0.4)},
+                              (float)(screenHeight * 0.5)},
                    fontSize, 2, COLORTEXTO);
         PrettyDrawRectangle(regresarPtr);                                                                                       // Esta vez solo dibujará el botón de regresar
         DrawTextEx(fontTtf, regresarPtr->name.data(),                                                                           // Y el nombre del botón regresar
@@ -132,7 +132,7 @@ void screenConfirmationDraw(Screen &currentScreen,
     }
     else       // Si ninguno de los dos if ocurrieron, significa que lo que corresponde dibujar sería el mensaje para confirmar el voto, entonces...
     {
-        std::string mselected = "Seleccionó "s + partidoSelected + " es correcto?"s;                                            // Mostrará un mensaje diciendo que confirme el partido por el que votó, y el nombre del partido
+        std::string mselected = "Seleccionó "s + partidoSelected + ", ¿es correcto?"s;                                            // Mostrará un mensaje diciendo que confirme el partido por el que votó, y el nombre del partido
         DrawTextEx(fontTtf, mselected.data(),
                    (Vector2){(float)centertext(mselected, screenWidth, fontSize),
                               (float)(screenHeight * 0.4)},

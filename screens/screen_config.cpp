@@ -330,8 +330,8 @@ void screenConfigDraw(Screen &currentScreen,
 
     // Estas líneas sirven para mostrar los mensajes en caso de algún error
 
-    if (inputEmpty) {shortmessage("Los datos se encuentran vacios", fontSize, inputEmpty);}           // Si inputEmpty se activa, es por que una barra se encuentra vacía, entonces llamará a shortmessage() para mostrar el mensaje escrito
-    else if (invalidIp) {shortmessage("La IP digitada es invalida", fontSize, invalidIp);}            // Si invalidIp se activa, es por que una IP digitada es inválida, entonces llamará a shortmessage() para mostrar el mensaje escrito
+    if (inputEmpty) {shortmessage("Los datos se encuentran vacíos", fontSize, inputEmpty);}           // Si inputEmpty se activa, es por que una barra se encuentra vacía, entonces llamará a shortmessage() para mostrar el mensaje escrito
+    else if (invalidIp) {shortmessage("La IP digitada es inválida", fontSize, invalidIp);}            // Si invalidIp se activa, es por que una IP digitada es inválida, entonces llamará a shortmessage() para mostrar el mensaje escrito
     else if (errorUpdating || errorConfig || errorCreating)            // Si errorUpdating se activa, es por algun error en la configuracion, como también errorConfig, entonces...
     {
         std::string errorMessage = "";    // Define a errorMessage, que será el string que almacenará alguno de los siguientes mensajes
@@ -356,8 +356,8 @@ void screenConfigDraw(Screen &currentScreen,
         else if (statusCodeUpdating == 127) errorMessage = "Error | La IP del servidor no existe";
         else if (statusCodeCreating == 10)  errorMessage = "Error al cargar las banderas de los partidos";
         else if (statusCodeCreating == 11)  errorMessage = "Error al cargar logos o representantes de los partidos";
-        else if (statusCodeConfig == 1)     errorMessage = "Error | No se encontro el archivo de configuracion";
-        else if (statusCodeConfig == 2)     errorMessage = "Error | Faltaron parametros en el archivo de configuracion";
+        else if (statusCodeConfig == 1)     errorMessage = "Error | No se encontro el archivo de configuración";
+        else if (statusCodeConfig == 2)     errorMessage = "Error | Faltaron parámetros en el archivo de configuración";
         if (errorConfig)   shortmessage(errorMessage, mediumFontSize, errorConfig, 450);          // Si errorConfig era el que se encontraba en true, llamará a la función shortmessage con errorConfig entre los argumentos
         else if(errorUpdating)  shortmessage(errorMessage, mediumFontSize, errorUpdating, 450);   // en caso de que sea errorUpdating, llamará a errorUpdating
         else shortmessage(errorMessage, mediumFontSize, errorCreating, 450);                      // Como última opción, entonces llamará a errorCreating

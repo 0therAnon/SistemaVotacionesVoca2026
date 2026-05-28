@@ -202,28 +202,28 @@ button*    btnSiPtr             = nullptr;
 button*    btnNoPtr             = nullptr;
 
 // ── Imágenes y texturas ───────────────────────────────────────────────────────
-Image vocaLogo = LoadImage("./assets/vocaLogo.png");
+Image vocaLogo = {0};
 Texture2D vocaLogoTexture;
-Image vocaLogoAdmin = LoadImage("./assets/vocaLogoAdmin.png");
+Image vocaLogoAdmin = {0};
 Texture2D vocaLogoAdminTexture;
-Image vocaBanner = LoadImage("./assets/vocaBanner.png");
+Image vocaBanner = {0};
 Texture2D vocaBannerTexture;
-Image vocaBackground = LoadImage("./assets/vocaBackground.png");
+Image vocaBackground = {0};
 Texture2D vocaBackgroundTexture;
 
 // ── Íconos del panel de administración ───────────────────────────────────────
 
-Image iconExitImg      = LoadImage("./assets/icon_exit.png");         // Ícono para el botón de salir del panel
+Image iconExitImg      = {0};         // Ícono para el botón de salir del panel
 Texture2D iconExit;
-Image iconConfigImg    = LoadImage("./assets/icon_config.png");       // Ícono para el botón de configuración
+Image iconConfigImg    = {0};         // Ícono para el botón de configuración
 Texture2D iconConfig;
-Image iconThemeImg     = LoadImage("./assets/icon_theme.png");        // Ícono para el botón de cambiar tema claro/oscuro
+Image iconThemeImg     = {0};         // Ícono para el botón de cambiar tema claro/oscuro
 Texture2D iconTheme;
-Image iconBackupImg    = LoadImage("./assets/icon_backup.png");       // Ícono para el botón de backup
+Image iconBackupImg    = {0};         // Ícono para el botón de backup
 Texture2D iconBackup;
-Image iconResetDataImg = LoadImage("./assets/icon_resetdata.png");    // Ícono para el botón de resetear datos
+Image iconResetDataImg = {0};         // Ícono para el botón de resetear datos
 Texture2D iconResetData;
-Image iconReloadImg    = LoadImage("./assets/icon_reload.png");    // Ícono para el botón de resetear datos
+Image iconReloadImg    = {0};         // Ícono para el botón de recargar
 Texture2D iconReload;
-Image iconCloseImg    = LoadImage("./assets/icon_close.png");      // Ícono para el botón de cerrar el programa
+Image iconCloseImg     = {0};         // Ícono para el botón de cerrar el programa
 Texture2D iconClose;

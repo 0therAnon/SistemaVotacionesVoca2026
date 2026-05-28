@@ -626,7 +626,7 @@ int objectCreation()
             fs::path rutaFlag = fs::current_path() / "assets" / fileFlag;
             if (!fs::exists(rutaFlag)) return 10;                                           // Si la bandera no existe, retorna error 10
 
-            Image flag = LoadImage(((std::string)rutaFlag).data());
+            Image flag = LoadImage((rutaFlag.string()).data());
 
             auto party = std::make_unique<parties>();
             party->name   = namepartidos[i];
@@ -659,7 +659,7 @@ int objectCreation()
             fs::path rutaLogo = fs::current_path() / "assets" / fileLogo;
             if (fs::exists(rutaLogo))
             {
-                Image logo = LoadImage(((std::string)rutaLogo).data());
+                Image logo = LoadImage((rutaLogo.string()).data());
                 party->logoW = logo.width * 0.5f;
                 party->logoH = logo.height * 0.5f;
                 ImageFormat(&logo, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
@@ -675,7 +675,7 @@ int objectCreation()
             fs::path rutaRep = fs::current_path() / "assets" / fileRep;
             if (fs::exists(rutaRep))
             {
-                Image rep = LoadImage(((std::string)rutaRep).data());
+                Image rep = LoadImage((rutaRep.string()).data());
                 party->presidentW = rep.width * 0.5f;
                 party->presidentH = rep.height * 0.5f;
                 ImageFormat(&rep, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
@@ -700,7 +700,7 @@ int objectCreation()
             std::cout << rutaFlag << "\n";
             if (!fs::exists(rutaFlag)) return 10;
 
-            Image banner = LoadImage(((std::string)rutaFlag).data());
+            Image banner = LoadImage((rutaFlag.string()).data());
             auto nullPartido = std::make_unique<parties>();
             nullPartido->name   = *nameNuloOpcion;
             nullPartido->xsize  = votarPtr->xsize * 0.9;
@@ -728,7 +728,7 @@ int objectCreation()
             fs::path rutaLogoN = fs::current_path() / "assets" / fileLogoN;
             if (fs::exists(rutaLogoN))
             {
-                Image logoN = LoadImage(((std::string)rutaLogoN).data());
+                Image logoN = LoadImage((rutaLogoN.string()).data());
                 nullPartido->logoW = logoN.width * 0.5f;
                 nullPartido->logoH = logoN.height * 0.5f;
                 ImageResize(&logoN, (int)nullPartido->logoW, (int)nullPartido->logoH);

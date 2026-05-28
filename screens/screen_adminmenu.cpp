@@ -838,10 +838,10 @@ void screenAdminmenuDraw(Screen &currentScreen,
                               (float)(informePtr->yloc + (informePtr->ysize - littleFontSize) / 2)},
                    littleFontSize, 2, NEGRO);                                                 // NEGRO porque el botón es beige
         // Verificación de errores de la función informe() relacionados a la creación del PDF
-        if (pdfError)            shortmessage("ERROR: Ocurrio un error al crear el PDF", fontSize, pdfError);                     // Si se activa pdfError desde la función informe(), mostrará ese mensaje
-        else if (pdfFontError)   shortmessage("ERROR: Ocurrio un error al cargar la fuente de texto", fontSize, pdfFontError);    // Si hubo un error con la fuente de texto, se activa pdfFontError desde la función informe(), y muestra ese mensaje
+        if (pdfError)            shortmessage("ERROR: Ocurrió un error al crear el informe", fontSize, pdfError);                     // Si se activa pdfError desde la función informe(), mostrará ese mensaje
+        else if (pdfFontError)   shortmessage("ERROR: Ocurrió un error al cargar la fuente de texto", fontSize, pdfFontError);    // Si hubo un error con la fuente de texto, se activa pdfFontError desde la función informe(), y muestra ese mensaje
         else if (pdfRandomError) shortmessage(pdfErrorString, fontSize, pdfRandomError);                                          // Si hubo un error muy específico desde la función informe(), entonces muestra el código de error
-        else if (successfulPdfCreation) shortmessage("PDF creado con exito!", fontSize, successfulPdfCreation);                   // Si el PDF se creó con éxito, muestra ese mensaje
+        else if (successfulPdfCreation) shortmessage("Informe creado con exito!", fontSize, successfulPdfCreation);                   // Si el PDF se creó con éxito, muestra ese mensaje
     }
     // ── Terminal ───────────────────────────────────────────────────────────────────────────
     else if (adminSelected == butnames[6])                              // Si la pestaña actual es "Terminal"
@@ -879,17 +879,17 @@ void screenAdminmenuDraw(Screen &currentScreen,
         }
         else                          // En caso de que se hayan agotado los intentos de autenticación...
         {
-            DrawTextEx(fontTtf, "Ha agotado sus intentos, retirese"s.data(),              // Mostrará un mensaje diciendo que se agotaron los intentos
+            DrawTextEx(fontTtf, "Ha agotado sus intentos, retírese"s.data(),              // Mostrará un mensaje diciendo que se agotaron los intentos
                        (Vector2){(float)centertext("Ha agotado sus intentos, retirese"s, screenWidth, fontSize),
                                   (float)(screenHeight * 0.5)},
                        fontSize, 2, NEGRO);
         }
         // Verificación de errores relacionados a la autenticación
         if (invalidCredentials)                 // Si las credenciales son inválidas...
-            shortmessage("Credenciales invalidas, tiene "s + std::to_string(intentosRestantes) + " intentos restantes"s,        // Mostrará el siguiente mensaje con la cantidad de intentos restantes
+            shortmessage("Credenciales inválidas, tiene "s + std::to_string(intentosRestantes) + " intentos restantes"s,        // Mostrará el siguiente mensaje con la cantidad de intentos restantes
                          mediumFontSize, invalidCredentials);
-        else if (inputEmpty) shortmessage("Los datos se encuentran vacios", fontSize, inputEmpty);          // Si hay credenciales vacías, mostrará el siguiente mensaje
-        else if (invalidIp)  shortmessage("La IP digitada es invalida",     fontSize, invalidIp);           // Si la IP es inválida, mostrará el siguiente mensaje
+        else if (inputEmpty) shortmessage("Los datos se encuentran vacíos", fontSize, inputEmpty);          // Si hay credenciales vacías, mostrará el siguiente mensaje
+        else if (invalidIp)  shortmessage("La IP digitada es inválida",     fontSize, invalidIp);           // Si la IP es inválida, mostrará el siguiente mensaje
     }
 
     // Dibuja al cuadro de advertencia en caso de que haya alguna

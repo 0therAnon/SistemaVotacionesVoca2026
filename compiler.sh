@@ -28,36 +28,37 @@ if [ $? -eq 0 ]; then
   sleep 1
 fi
 
-which make
+which make &>/dev/null
 
 if [ $? -ne 0 ]; then
-  echo ""
-  echo "El comando make no se encuentra en el sistema, por favor, instale make"
-  echo "Puede instalarlo usando:"
-  echo "    "
+  echo "\nEl comando make no se encuentra en el sistema, por favor, instálelo"
+  echo "Puede instalarlo usando:\n"
   echo "    sudo apt install make"
   echo "    sudo dnf install make"
-  echo "    "
-  echo "Depende del instalador de su sistema"
+  echo "    sudo pacman -S make"
+  echo "\nDepende del instalador de su sistema"
   exit 1
 fi
 
 make --makefile=./build/Makefile                                          # Se procede a compilar
 
 if [ $? -ne 0 ]; then                                                     # Si la compilación falla, envía un mensaje diciendo que falló, y sale del programa
-  echo ""
-  echo "El programa tuvo errores en su compilación"
-  echo ""
+  echo "\nEl programa tuvo errores en su compilación"
+  echo "En caso de que alguna librería falte en su sistema, recuerde instalar las siguientes:"
+  echo "    libpng-dev"
+  echo "    libmysqlclient-dev"
+  echo "    libssl-dev"
+  echo "    zlib1g-dev"
+  echo "    libgl-dev\n"
   exit 1
 fi
 
 export LD_LIBRARY_PATH=$PWD/build/bin/linux:$LD_LIBRARY_PATH              # En linux, el ejecutable necesita la librería dinámica que se encuentra en la carpeta bin/linux para poder ejecutarse, entonces la almacena en la variable LD_LIBRARY_PATH
-./build/bin/linux/main                                                    # Se ejecuta el binario
+mv ./build/bin/linux/main .                                               # Mueve el binario al directorio actual
+./main                                                                    # Ejecuta el binario
 
 if [ $? -eq 0 ]; then                                                     # Se comprueba el estado del programa
-  echo ""
-  echo "El programa fue ejecutado de manera exitosa"
+  echo -e "\nEl programa fue ejecutado de manera exitosa"
 else
-  echo ""
-  echo "El programa tuvo errores en su ejecución, sin embargo, si usted lee el error algo relacionado a memory leaks de libcrypto, no se preocupe, el error es de libcrypto, no nuestro"
+  echo -e "\nEl programa tuvo errores en su ejecución, sin embargo, si usted lee el error algo relacionado a memory leaks de libcrypto, no se preocupe, el error es de libcrypto, no nuestro"
 fi

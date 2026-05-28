@@ -1,0 +1,6 @@
+/* Archivo de recursos de Windows.
+   La línea de abajo incrusta el icono en el .exe para que se vea en el
+   explorador de archivos y en la barra de tareas (icono del archivo).
+   El ID 1 con la primera entrada ICON hace que Windows lo use como icono
+   principal del ejecutable. La ruta es relativa a la ubicación de este .rc. */
+1 ICON "assets/vocaLogo.ico"

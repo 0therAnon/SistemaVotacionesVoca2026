@@ -2,6 +2,10 @@
 #include <string>                     // Llama a la librería string, ya que se necesitan usar diversos formatos de string a continuación, como wstring y funciones para manipular los strings
 #include <chrono>
 #include <iostream>
+#include <cstdlib>                    // Necesario para std::system
+#include <format>                     // Para formatear fechas en C++20
+
+// En este código confieso que tuve que pedir ayuda a Claude, estuve 6 horas intentando averiguar por qué en Windows no funcionaba la ptyfunc(), caí en la locura
 
 /* A continuación, ptyfunc() sirve para la ejecución de comandos a través de una pseudoconsola, una pseudoconsola, o también llamada PTY, es una consola/terminal que simula ser una terminal interactiva,
    una terminal interactiva es necesaria para que la respuesta de la base de datos muestre de forma gráfica las tablas usando los pipes |, guiones - y símbolos de suma +, con todo esto se puede ver de manera
@@ -18,188 +22,348 @@
    En linux, solo necesita el comando mysql instalado en el sistema, pero eso no se cubrirá en este programa ni en el compilador compiler.sh, ya que no creo que hayan computadoras linux a instalarles este programa
    a parte de las de nosotros, pero ya nosotros tendríamos ese comandos instalado debido a que anteriormente tuvimos que haber montado el servidor MySQL */
 
-#if defined(_WIN32)                   // A continuación, verifica si se compilará para windows, compilará el código hasta alrededor de la línea 173
+#if defined(_WIN32)                   // Rama de compilación para Windows (usa ConPTY: la pseudoconsola nativa de Windows 10+)
 
-#ifndef _WIN32_WINNT                  // ConPTY (CreatePseudoConsole / ClosePseudoConsole) requiere Windows 10+
+/* ConPTY (HPCON, CreatePseudoConsole, ClosePseudoConsole,
+   PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE) está declarado en los encabezados de
+   MinGW solo si NTDDI_VERSION >= 0x0A000006 (Windows 10 1809 / RS5). Por eso,
+   además de _WIN32_WINNT, fijamos NTDDI_VERSION ANTES de incluir windows.h.
+   Si no se hace, el compilador dirá que 'HPCON' no está declarado. */
+
+#ifndef _WIN32_WINNT
 #  define _WIN32_WINNT 0x0A00
 #elif _WIN32_WINNT < 0x0A00
 #  undef  _WIN32_WINNT
 #  define _WIN32_WINNT 0x0A00
 #endif
 
-#include <winsock2.h>                 // Llama a la librería winsock2.h
-#include <ws2tcpip.h>                 // Llamada a la librería de la comunicación TCP/IP
-#pragma comment(lib, "Ws2_32.lib")    // La librería para su compilación la buscará como "Ws2_32.lib"
-#include <windows.h>                  // Llamada a la librería para comunicarse con la API de Windows
+#ifndef NTDDI_VERSION
+#  define NTDDI_VERSION 0x0A000006
+#elif NTDDI_VERSION < 0x0A000006
+#  undef  NTDDI_VERSION
+#  define NTDDI_VERSION 0x0A000006
+#endif
 
-static std::wstring to_wstring(const std::string& str)      // Función para convertir de string a wstring
+#include <windows.h>                  // API de Windows: procesos, pipes, handles, ConPTY
+#include <vector>                     // Para el buffer del comando
+
+/* ── Carga dinámica de ConPTY ────────────────────────────────────────────────
+   Con MinGW (y especialmente con -static) los símbolos CreatePseudoConsole y
+   ClosePseudoConsole no siempre se enlazan bien contra kernel32, lo que puede
+   hacer que la pseudoconsola "se cree" sin error pero nunca conecte la salida.
+   Por eso los resolvemos en tiempo de ejecución con GetProcAddress, que es la
+   forma fiable y recomendada por Microsoft. Funciona con o sin -static. */
+
+typedef HRESULT (WINAPI *PFN_CreatePseudoConsole)(COORD, HANDLE, HANDLE, DWORD, HPCON*);
+typedef void    (WINAPI *PFN_ClosePseudoConsole)(HPCON);
+
+static PFN_CreatePseudoConsole pCreatePseudoConsole = nullptr;   // Puntero a la CreatePseudoConsole real del sistema
+static PFN_ClosePseudoConsole  pClosePseudoConsole  = nullptr;   // Puntero a la ClosePseudoConsole real del sistema
+
+static bool loadConPTY()                                         // Carga ambas funciones desde kernel32.dll una sola vez
 {
-    if (str.empty()) return L"";      // Si el string de entrada está vacío, devolverá un string en widechar vacío
-    int size_needed = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.size(), NULL, 0);   // Declara el tamaño necesitado para almacenar el string
-    std::wstring wstr(size_needed, 0);                                                          // Declara a wstr como tipo widechar string, con el tamaño ya calculado en size_needed
-    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.size(), &wstr[0], size_needed);       // Y procede a convertir el string recibido a un tipo widechar string
-    return wstr;                      // Retorna el string convertido
+    if (pCreatePseudoConsole && pClosePseudoConsole) return true; // Ya cargadas: no repetir
+    HMODULE hK = GetModuleHandleW(L"kernel32.dll");               // kernel32 siempre está presente en todo proceso Windows
+    if (!hK) return false;
+    pCreatePseudoConsole = (PFN_CreatePseudoConsole)GetProcAddress(hK, "CreatePseudoConsole");
+    pClosePseudoConsole  = (PFN_ClosePseudoConsole) GetProcAddress(hK, "ClosePseudoConsole");
+    return (pCreatePseudoConsole && pClosePseudoConsole);         // true solo si Windows soporta ConPTY (10 1809+)
 }
 
-// Para que ptyfunc() pueda enviar los comandos a la base de datos necesita las credenciales de acceso, las cuales son sus argumentos
+/* ── Directorio del ejecutable ───────────────────────────────────────────────
+   Devuelve la carpeta donde reside el .exe (sin barra final). Se usa como
+   directorio de trabajo (lpCurrentDirectory) al lanzar mariadb.exe, de modo que
+   éste encuentre sus DLLs en .\bin\ sin importar desde dónde se abra el programa
+   (doble clic, acceso directo, etc.). Sin esto el proceso hijo falla con el
+   error 0xc0000142 ("la aplicación no se pudo iniciar correctamente"). */
 
-std::string ptyfunc(std::string sqlinput,         // Comando a ejecutar
-                    std::string inputuser,        // Usuario
-                    std::string inputpass,        // Contraseña
-                    std::string inputserver,      // IP de servidor
-                    std::string inputport,        // Puerto de MySQL
-                    std::string inputdatabase)    // Nombre de la base de datos
+static std::wstring getExeDir()
 {
-    std::string outTerm = "";                           // Declaración de outTerm, el cual será el valor que se reciba como respuesta del comando
-    std::wstring sqliwstr = to_wstring(sqlinput);       // Convierte los valores
-    std::wstring userwstr = to_wstring(inputuser);      // de las credenciales de
-    std::wstring passwstr = to_wstring(inputpass);      // acceso a strings de tipo
-    std::wstring srvrwstr = to_wstring(inputserver);    // widechar, ya que la API de
-    std::wstring portwstr = to_wstring(inputport);      // Windows trabaja con UTF-16,
-    std::wstring basewstr = to_wstring(inputdatabase);  // y widechar es lo mismo a UTF-16
+    wchar_t path[MAX_PATH] = {};
+    GetModuleFileNameW(NULL, path, MAX_PATH);        // Ruta completa del .exe en ejecución
+    std::wstring full(path);
+    auto pos = full.rfind(L'\\');                    // Última barra invertida
+    if (pos != std::wstring::npos) full.resize(pos); // Recorta el nombre del archivo: queda solo la carpeta
+    return full;
+}
 
-    std::wstring cmd;
+/* ── Conversión UTF-8 (std::string) → UTF-16 (std::wstring) ──────────────────
+   La API W de Windows trabaja en UTF-16, así que convertimos los argumentos. */
 
-    if (sqlinput != "backup")                           // Si el comando a ejecutar NO es "backup", el cual es un comando personalizado del sistema de votaciones, entonces armará una query normalmente
-        cmd = L".\\bin\\mariadb.exe";      // Empieza a armar el comando a ejecutar en la pseudoconsola: .\bin\mariadb.exe
-    else                                                // En caso de que el comando SÍ sea "backup", procederá a realizar un backup de la base de datos
-        cmd = L"if (!(Test-Path \".\\backups\")) { New-Item -ItemType Directory -Path \".\\backups\" } ; .\\bin\\mariadb-dump.exe"; // Empieza a armar la query para el backup
+static std::wstring to_wstring(const std::string& str)
+{
+    if (str.empty()) return L"";
+    int need = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.size(), NULL, 0);
+    std::wstring w(need, 0);
+    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.size(), &w[0], need);
+    return w;
+}
 
-    cmd += L" -u"; cmd += userwstr;                     // .\bin\mariadb.exe -u usuario
-    cmd += L" -p"; cmd += passwstr;                     // .\bin\mariadb.exe -u usuario -p contraseña
-    if (sqlinput != "backup")                           // Si el comando a ejecutar NO es "backup", el cual es un comando personalizado del sistema de votaciones, entonces armará una query normalmente
-        {cmd += L" -D "; cmd += basewstr;}              // .\bin\mariadb.exe -u usuario -p contraseña -D basededatos
-    else                                                // Si el comando a ejecutar SÍ es "backup", cambiará la forma de llamar al argumento para especificar el nombre de la base de datos, ya que mariadb-dump usa otro argumento para esto
-        {cmd += L" --databases "; cmd += basewstr;}     // Procede a llamar a la base de datos con "--databases" en vez de "-D"
-    cmd += L" -h "; cmd += srvrwstr;                    // .\bin\mariadb.exe -u usuario -p contraseña -D basededatos -h ipservidor
-    cmd += L" -P "; cmd += portwstr;                    // .\bin\mariadb.exe -u usuario -p contraseña -D basededatos -h ipservidor -P puerto
+/* ── Filtro de secuencias de escape VT (CSI y OSC) ───────────────────────────
+   ConPTY emite la tabla de MariaDB con secuencias ANSI. La mayoría son de color
+   y se descartan. Pero algunas representan ESPACIADO mediante movimiento de
+   cursor en lugar de espacios literales; si las descartáramos sin más, las
+   columnas de la tabla quedarían desalineadas (un '|' corrido, datos pegados).
 
-    if (sqlinput != "backup")                           // Si el comando NO es "backup", el cual es un comando personalizado del sistema de votaciones, entonces seguirá armando la query normalmente
+   Caso importante: CSI 'C' (ESC[<n>C) = "mover cursor n columnas a la derecha".
+   ConPTY lo usa para saltar espacios en blanco. Lo convertimos en n espacios
+   reales para conservar la alineación de la tabla.
+
+   La máquina de estados conserva su estado entre llamadas (se pasa por
+   referencia) para ser robusta ante secuencias partidas entre dos lecturas. */
+
+enum class VTState { NORMAL, ESC_SEEN, CSI, OSC };
+
+static void filterVT(const char* data, DWORD len,
+                     std::string& out, VTState& st, bool& oscEsc, std::string& csiParams)
+{
+    for (DWORD i = 0; i < len; i++)
     {
-        cmd += L" -e \""; cmd += sqliwstr;              // .\bin\mariadb.exe -u usuario -p contraseña -D basededatos -h ipservidor -P puerto -e "comando
-        cmd += L"\"";                                   // .\bin\mariadb.exe -u usuario -p contraseña -D basededatos -h ipservidor -P puerto -e "comando"
+        unsigned char c = (unsigned char)data[i];
+        switch (st)
+        {
+            case VTState::NORMAL:
+                if (c == 0x1B) st = VTState::ESC_SEEN;          // ESC: posible inicio de secuencia
+                else if (c != '\r') out += (char)c;             // Texto normal (descartamos \r)
+                break;
+
+            case VTState::ESC_SEEN:
+                if      (c == '[') { st = VTState::CSI; csiParams.clear(); }  // ESC[ → secuencia CSI
+                else if (c == ']') st = VTState::OSC;            // ESC] → secuencia OSC
+                else {                                          // ESC seguido de otra cosa: no era secuencia
+                    st = VTState::NORMAL;
+                    out += (char)0x1B;
+                    if (c != '\r') out += (char)c;
+                }
+                break;
+
+            case VTState::CSI:
+                if (c >= 0x40 && c <= 0x7E)                      // Byte final de la secuencia CSI (0x40..0x7E)
+                {
+                    if (c == 'C')                               // 'C' = avanzar cursor N columnas → equivale a N espacios
+                    {
+                        int n = csiParams.empty() ? 1 : atoi(csiParams.c_str());  // Sin parámetro = 1
+                        if (n < 0) n = 0;
+                        if (n > 4096) n = 4096;                 // Límite de seguridad
+                        out.append((size_t)n, ' ');            // Reinsertamos el espaciado como espacios reales
+                    }
+                    // Cualquier otro CSI (colores 'm', cursor 'H', borrado 'K', etc.) se descarta
+                    st = VTState::NORMAL;
+                }
+                else
+                {
+                    // Acumula los parámetros numéricos/intermedios de la secuencia (ej. "12" en ESC[12C)
+                    csiParams += (char)c;
+                }
+                break;
+
+            case VTState::OSC:                                  // OSC termina con BEL (0x07) o con ESC '\'
+                if (c == 0x07) { st = VTState::NORMAL; oscEsc = false; }
+                else if (c == 0x1B) oscEsc = true;
+                else if (c == '\\' && oscEsc) { st = VTState::NORMAL; oscEsc = false; }
+                else oscEsc = false;
+                break;
+        }
     }
-    else                                                // Si el comando SÍ es "backup", entonces procederá a crear una redirección a un archivo dentro de la carpeta backups
+}
+
+// ── Función principal ────────────────────────────────────────────────────────
+
+std::string ptyfunc(std::string sqlinput,         // Comando SQL a ejecutar (o "backup")
+                    std::string inputuser,         // Usuario
+                    std::string inputpass,         // Contraseña
+                    std::string inputserver,       // IP del servidor
+                    std::string inputport,         // Puerto de MySQL/MariaDB
+                    std::string inputdatabase)     // Nombre de la base de datos
+{
+    // ── Caso especial "backup": vuelca la base de datos a un .sql con fecha ──
+    if (sqlinput == "backup")
     {
         auto now = std::chrono::system_clock::now();
-        std::wstring nowWstr = std::format(L"{:%Y-%m-%d-%H-%M-%S}", now);
-        cmd += L" > \".\\backups\\backup_" + nowWstr;
-        cmd += L".sql\"";
+        std::string nowStr = std::format("{:%Y-%m-%d-%H-%M-%S}", now);
+
+        std::system("mkdir .\\backups 2>nul");      // Crea la carpeta backups si no existe
+
+        std::string cmd = ".\\bin\\mariadb-dump.exe"
+                          " --user=" + inputuser +
+                          " --password=" + inputpass +
+                          " --host=" + inputserver +
+                          " --port=" + inputport +
+                          " --databases " + inputdatabase +
+                          " > .\\backups\\backup_" + nowStr + ".sql";
+
+        int stateCode = std::system(cmd.data());
+        if (stateCode != 0) return "Hubo un error al generar el backup de la base de datos";
+        return "Se hizo el backup con éxito";
     }
 
-    std::wcout<<cmd<<"\n";
+    // ── Construcción del comando para mariadb.exe ──
+    std::wstring cmd = L".\\bin\\mariadb.exe";
+    cmd += L" -u";  cmd += to_wstring(inputuser);
+    cmd += L" -p";  cmd += to_wstring(inputpass);
+    cmd += L" -D "; cmd += to_wstring(inputdatabase);
+    cmd += L" -h "; cmd += to_wstring(inputserver);
+    cmd += L" -P "; cmd += to_wstring(inputport);
+    cmd += L" -e \""; cmd += to_wstring(sqlinput); cmd += L"\"";
 
-    /* Se crean los pipes para la comunicación, los cuales sirven para enviar datos de entrada o salida como recibir datos de entrada o salida
+    std::vector<wchar_t> cmdBuffer(cmd.begin(), cmd.end());  // CreateProcessW necesita un buffer modificable
+    cmdBuffer.push_back(0);
 
-       Se puede explicar de esta forma:
+    std::string outTerm;   // Acumula la salida ya filtrada
 
-       [Este programa] -- hPipeInWrite -- > --hPipeInRead -- > [MariaDB/MySQL]   (enviar datos)
-       [Este programa] < -- hPipeOutRead -- < -- hPipeOutWrite -- [MariaDB/MySQL]  (recibir datos)  */
+    // ── Carga de ConPTY ──
+    if (!loadConPTY())
+        return "Error | Este Windows no soporta ConPTY (se requiere Windows 10 1809 o superior).";
 
-    HANDLE hPipeInRead, hPipeInWrite;                           // Se declaran los pipes de entrada de lectura y escritura
-    HANDLE hPipeOutRead, hPipeOutWrite;                         // Se declaran los pipes de salida de lectura y escritura
-    SECURITY_ATTRIBUTES sa{ sizeof(sa), NULL, TRUE };           // Se declara de que los pipes se pueden heredar al proceso hijo, el cual sería el proceso que se crea al invocar la pseudoconsola a ejecutar el comando armado
-    CreatePipe(&hPipeInRead, &hPipeInWrite, &sa, 0);            // Se crean los pipes de entrada con el sa anteriormente especificado
-    CreatePipe(&hPipeOutRead, &hPipeOutWrite, &sa, 0);          // Se crean los pipes de salida con el sa anteriormente especificado
+    /* ── Creación de los pipes ────────────────────────────────────────────────
+       hPipeInRead/hPipeInWrite  → entrada hacia mariadb.exe (no la usamos, el
+                                    comando va en -e, pero ConPTY los exige).
+       hPipeOutRead/hPipeOutWrite → salida desde mariadb.exe (lo que leemos). */
 
-    HPCON hPC;                                                            // Se declara la variable de la pseudoconsola
-    COORD size = { 120, 30 };                                             // Se crea el tamaño visual de la pseudoconsola, aunque será invisible, influye en la respuesta de la base de datos
-    CreatePseudoConsole(size, hPipeInRead, hPipeOutWrite, 0, &hPC);       // Se crea la pseudoconsola, con los pipes donde la terminal recibe datos de entrada, y escribe su salida
+    HANDLE hPipeInRead = NULL,  hPipeInWrite = NULL;
+    HANDLE hPipeOutRead = NULL, hPipeOutWrite = NULL;
+    SECURITY_ATTRIBUTES sa{ sizeof(sa), NULL, TRUE };
 
-    STARTUPINFOEXW si{};                                // Crea una estructura que contendrá todas las propiedades y configuraciones de la pseudoconsola, además de que la estructura acepta texto en UTF-16 (por eso el W final en STARTUPINFOEXW)
-    si.StartupInfo.cb = sizeof(STARTUPINFOEXW);         // Se le indica a windows el tamaño de la estructura, el cual será el tamaño de STARTUPINFOEXW
+    if (!CreatePipe(&hPipeInRead, &hPipeInWrite, &sa, 0) ||
+        !CreatePipe(&hPipeOutRead, &hPipeOutWrite, &sa, 0))
+        return "Error | No se pudieron crear los pipes de comunicación.";
 
-    SIZE_T attrListSize;                                                                                    // Se declara attrListSize, el cual guardará cuanta memoria se necesita por InitializeProcThreadAttributeList
-    InitializeProcThreadAttributeList(NULL, 1, 0, &attrListSize);                                           // Se llama a InitializeProcThreadAttributeList para inicializar un proceso NULL, el cual no hace nada pero calcula la memoria necesaria
-    si.lpAttributeList = (PPROC_THREAD_ATTRIBUTE_LIST)HeapAlloc(GetProcessHeap(), 0, attrListSize);         // Reserva la cantidad de memoria calculada anteriormente pidiendo el tamaño de attrListSize, y reserva esa memoria en el heap
-    InitializeProcThreadAttributeList(si.lpAttributeList, 1, 0, &attrListSize);                             // Llama a InitializeProcThreadAttributeList nuevamente pero con los atributos en si.lpAttributeList, con eso inicializa un proceso real
-    UpdateProcThreadAttribute(si.lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,                   // Ahora, actualiza los atributos del proceso recién iniciado, diciendole que debe de usar la pseudoconsola declarada como hPC
-                              hPC, sizeof(hPC), NULL, NULL);
+    // ── Creación de la pseudoconsola ──
+    HPCON hPC = NULL;
+    COORD size = { 120, 30 };                    // Tamaño "visual" de la consola: influye en el formato de la tabla
+    HRESULT hr = pCreatePseudoConsole(size, hPipeInRead, hPipeOutWrite, 0, &hPC);
+    if (FAILED(hr)) {
+        CloseHandle(hPipeInRead);  CloseHandle(hPipeInWrite);
+        CloseHandle(hPipeOutRead); CloseHandle(hPipeOutWrite);
+        return "Error | No se pudo crear la PseudoConsola. HRESULT: " + std::to_string(hr);
+    }
 
-    PROCESS_INFORMATION pi{};                           // Crea una estructura que contendrá la información del proceso actual
-    CreateProcessW(NULL, cmd.data(), NULL, NULL, FALSE,                                 // Ahora con esta línea, ejecuta el comando armado previamente al incio de la función
-                   EXTENDED_STARTUPINFO_PRESENT, NULL, NULL, &si.StartupInfo, &pi);
-    CloseHandle(hPipeInWrite);                          // Ahora, se cierran los pipes que eran de la pseudoconsola
-    CloseHandle(hPipeInRead);                           // ya que si estos pipes no se cierran debidamente
-    CloseHandle(hPipeOutWrite);                         // el programa estará esperando recibir datos de entrada eternamente
+    /* CRÍTICO: ConPTY ya duplicó internamente hPipeInRead y hPipeOutWrite.
+       Cerramos NUESTRAS copias ahora mismo. Si no lo hiciéramos, quedaría un
+       escritor extra en el pipe de salida y el EOF nunca llegaría, dejando el
+       bucle de lectura sin recibir nada. Conservamos hPipeInWrite y hPipeOutRead. */
+    CloseHandle(hPipeInRead);
+    CloseHandle(hPipeOutWrite);
 
-    char buffer[4096];                          // Se declara un buffer de tipo char que almacenará como máximo 4096 carácteres, este buffer sirve para almacenar poco a poco los carácteres de la respuesta de la base de datos
-    DWORD bytesAvailable = 0;                   // Se declara a bytesAvailable que almacenará la cantidad de bytes restantes por leer de la respuesta de la base de datos por el comando ejecutado anteriormente
+    // ── Configuración del proceso con el atributo de pseudoconsola ──
+    STARTUPINFOEXW si{};
+    si.StartupInfo.cb = sizeof(STARTUPINFOEXW);
 
-    /* Al supuestamente encontrarnos en una terminal virtual, Windows formateará la respuesta de la base de datos usando OSC y CSI:
-
-       CSI: Sirve para controlar el cursor de la terminal, los colores de las respuestas y de la terminal, y la edición de la visualización de los datos en la terminal
-       OSC: Sirve para configurar el título de la ventana y definir links
-
-       El inicio de las secuencias de CSI comienza con ESC (0x1B) y un [ seguido de otros parámetros y un carácter final como por ejemplo 1;2m
-       El inicio de las secuencias de OSC comienza con ESC (0x1B) y un ] y finaliza con ST ESC\
-
-       Al ser carácteres que windows formatea en la salida de los textos de la terminal, deben de ser eliminados, entonces en el bucle siguiente, se detectarán los carácteres de los dos tipos y se filtrarán */
-
-    enum class VTState { NORMAL, OSC, CSI };          // Declara tres estados de la terminal: NORMAL para texto normal, OSC para secuencias OSC, y CSI para secuencias CSI
-    VTState vtState = VTState::NORMAL;                // Asigna a VTState inicialmente como NORMAL
-
-    Sleep(500);                               // Dá un tiempo de reposo del programa de 500 milisegundos para que mariadb.exe se inicialice y haga la consulta al servidor, y después de esto...
-    while (true)                              // Inicio del bucle de lectura de la respuesta del servidor
+    SIZE_T attrSize = 0;
+    InitializeProcThreadAttributeList(NULL, 1, 0, &attrSize);                 // Calcula la memoria necesaria
+    si.lpAttributeList = (PPROC_THREAD_ATTRIBUTE_LIST)HeapAlloc(GetProcessHeap(), 0, attrSize);
+    if (!si.lpAttributeList ||
+        !InitializeProcThreadAttributeList(si.lpAttributeList, 1, 0, &attrSize) ||
+        !UpdateProcThreadAttribute(si.lpAttributeList, 0,
+                                   PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
+                                   hPC, sizeof(hPC), NULL, NULL))
     {
-        if (!PeekNamedPipe(hPipeOutRead, NULL, 0, NULL, &bytesAvailable, NULL)) break;                    // Si se intenta mirar dentro del pipe de lectura por medio de PeekNamedPipe y falla, se sale del bucle de lectura
-        if (bytesAvailable > 0)                                                                           // Si hay más de 0 bytes dentro del pipe disponibles, entonces...
+        if (si.lpAttributeList) HeapFree(GetProcessHeap(), 0, si.lpAttributeList);
+        CloseHandle(hPipeInWrite); CloseHandle(hPipeOutRead);
+        pClosePseudoConsole(hPC);
+        return "Error | No se pudo configurar el proceso de la pseudoconsola.";
+    }
+
+    // ── Directorio de trabajo = carpeta del .exe (clave para evitar 0xc0000142) ──
+    std::wstring exeDir = getExeDir();
+
+    // ── Lanzamiento de mariadb.exe ──
+    PROCESS_INFORMATION pi{};
+    BOOL ok = CreateProcessW(
+        NULL, cmdBuffer.data(),
+        NULL, NULL,
+        TRUE,                                     // bInheritHandles = TRUE (requerido por ConPTY)
+        EXTENDED_STARTUPINFO_PRESENT,
+        NULL,
+        exeDir.empty() ? NULL : exeDir.c_str(),   // directorio de trabajo = carpeta del .exe
+        &si.StartupInfo, &pi);
+
+    if (!ok) {
+        DWORD err = GetLastError();
+        DeleteProcThreadAttributeList(si.lpAttributeList);
+        HeapFree(GetProcessHeap(), 0, si.lpAttributeList);
+        CloseHandle(hPipeInWrite); CloseHandle(hPipeOutRead);
+        pClosePseudoConsole(hPC);
+        return "Error al ejecutar MariaDB. Código: " + std::to_string(err) +
+               ". Asegúrate de que .\\bin\\mariadb.exe existe en la ubicación correcta de la app.";
+    }
+
+    /* Cerramos el extremo de escritura de stdin: no enviamos nada por pipe (el
+       comando va en -e), así mariadb.exe ve EOF en su entrada y termina limpio. */
+    CloseHandle(hPipeInWrite);
+
+    /* ── Bucle de lectura NO BLOQUEANTE ───────────────────────────────────────
+       NO usamos un ReadFile bloqueante: ConPTY mantiene su propio escritor en el
+       pipe de salida hasta que se cierra la pseudoconsola (que cerramos DESPUÉS
+       de este bucle), así que un ReadFile bloqueante esperaría datos para siempre
+       y colgaría la app de un solo hilo (el síntoma "no responde").
+
+       En su lugar sondeamos con PeekNamedPipe:
+         - Si hay bytes disponibles, los leemos y filtramos.
+         - Si no hay y el proceso aún vive, esperamos un poco (sin quemar CPU).
+         - Cuando el proceso ya terminó Y el pipe lleva un rato vacío, salimos.
+       Así garantizamos capturar toda la tabla sin bloquearnos jamás. */
+
+    VTState st = VTState::NORMAL;
+    bool oscEsc = false;
+    std::string csiParams;   // Acumula los parámetros numéricos de las secuencias CSI (para interpretar ESC[<n>C)
+    char buffer[4096];
+    DWORD bytesRead = 0;
+    DWORD bytesAvailable = 0;
+
+    bool processActive = true;          // ¿mariadb.exe sigue corriendo?
+    int  idleRounds = 0;                 // Vueltas consecutivas con el pipe vacío tras terminar el proceso
+
+    while (true)
+    {
+        // Mira cuántos bytes hay en el pipe sin bloquear. Si falla, el pipe se cerró.
+        if (!PeekNamedPipe(hPipeOutRead, NULL, 0, NULL, &bytesAvailable, NULL))
+            break;
+
+        if (bytesAvailable > 0)
         {
-            DWORD bytesRead;                                                                              // Se declara bytesRead como el valor que almacenará la cantidad de bytes leídos
-            ReadFile(hPipeOutRead, buffer, sizeof(buffer) - 1, &bytesRead, NULL);                         // Y se empieza a leer el pipe byte por byte, el contenido que se lea se guarda en el buffer de 4096 bytes
-            for (DWORD i = 0; i < bytesRead; i++)                                                         // Se empieza a recorrer los bytes leídos
+            if (ReadFile(hPipeOutRead, buffer, sizeof(buffer), &bytesRead, NULL) && bytesRead > 0)
+                filterVT(buffer, bytesRead, outTerm, st, oscEsc, csiParams);
+            idleRounds = 0;              // Llegaron datos: reinicia el contador de inactividad
+        }
+        else
+        {
+            if (processActive)
             {
-                unsigned char c = buffer[i];                                                              // Se declara c como el carácter que se está leyendo actualmente del buffer
-                switch (vtState)                                                                          // Empieza un switch, que verificará a cual bloque de código ir dependiendo del modo que almacene vtState
-                {
-                    case VTState::NORMAL:                                                                 // Si el modo es NORMAL...
-                        if (c == 0x1B)                                                                    // Si se detecta que el byte actual es igual a ESC (0x1B), lo cual coincide con el inicio de CSI o OSC, entonces...
-                        {
-                            if (i + 1 < bytesRead)                                                        // Si se le suma un valor más a i y sigue siendo menor que bytesRead (para prevenir leer algo fuera del límite)...
-                            {
-                                if (buffer[i + 1] == ']') { vtState = VTState::OSC; i++; break; }         // Se verificará si el siguiente byte es igual al carácter ], si fuese así coincidiría con el inicio de OSC, entonces cambia el modo vtState
-                                if (buffer[i + 1] == '[') { vtState = VTState::CSI; i++; break; }         // En cambio, si el siguiente byte es igual al carácter [, coincidiría con el inicio de CSI, entonces cambia el modo de vtState
-                            }
-                        }
-                        if (c == '\r') break;                                                             // Si se detecta que el byte actual es un retorno de carro, hace un break para descartarlo, ya que no es un carácter válido
-                        outTerm += c;                                                                     // En caso de que el carácter actual NO sea igual a 0x1B ni a un \r, entonces lo agrega a outTerm
-                        break;
-                    case VTState::OSC:                                                                    // Si el modo es OSC...
-                        if (c == 0x07 || (c == '\\' && i > 0 && buffer[i - 1] == 0x1B))                   // Si se detecta que el byte actual es igual a 0x07 o a un \, y que el carácter anterior fue un ESC (0x1B), entonces significa que terminó CSI
-                            vtState = VTState::NORMAL;                                                    // Regresa al modo NORMAL
-                        break;
-                    case VTState::CSI:                                                                    // Si el modo es CSI...
-                        if (c >= 0x40 && c <= 0x7E) vtState = VTState::NORMAL;                            // Si detecta que el carácter actual es mayor a 0x40 o es menor a 0x7E, significará el fin de CSI, entonces regresará al modo NORMAL
-                        break;
-                }
+                // Espera hasta 15ms a que el proceso termine (no quema CPU)
+                if (WaitForSingleObject(pi.hProcess, 15) == WAIT_OBJECT_0)
+                    processActive = false;
+            }
+            else
+            {
+                /* El proceso ya terminó y el pipe está vacío en esta vuelta.
+                   ConPTY puede tardar en depositar los últimos bytes, así que
+                   esperamos varias vueltas de silencio antes de salir. Si entra
+                   un solo byte, idleRounds se reinicia arriba. */
+                Sleep(10);
+                if (++idleRounds >= 100)   // ~1 segundo de silencio total → fin seguro
+                    break;
             }
         }
-        else      // En caso de que hayan menos de 0 bytes disponibles en el pipe, entonces...
-        {
-            DWORD exitCode;                                     // Se declara exitCode para verificar si mariadb.exe terminó su ejecución en la siguiente línea
-            GetExitCodeProcess(pi.hProcess, &exitCode);         // Se llama GetExitCodeProcess() con el parámetro pi.Process para tener la información del proceso y guardará el código de estado que responda GetExitCodeProcess() dentro de exitCode
-            if (exitCode != STILL_ACTIVE) break;                // Si el proceso responde con un código de salida NO IGUAL a STILL_ACTIVE, significa que el proceso ya terminó, en ese caso hace un break del bucle de lectura
-        }
     }
 
-    WaitForSingleObject(pi.hProcess, INFINITE);                 // Espera a que mariadb.exe termine completamente por un tiempo INFINITE, quiere decir que esperará a mariadb.exe a terminar el proceso hasta que mariadb.exe lo comunique
-    CloseHandle(pi.hProcess);                                   // Se cierra el PROCESS_INFORMATION del proceso actual
-    CloseHandle(pi.hThread);                                    // Se cierra el PROCESS_INFORMATION del hilo de mariadb.exe
-    CloseHandle(hPipeOutRead);                                  // Se cierra el pipe de lectura
-    ClosePseudoConsole(hPC);                                    // Se cierra la pseudoconsola
-    DeleteProcThreadAttributeList(si.lpAttributeList);          // Elimina los atributos y configuraciones del proceso actual
-    HeapFree(GetProcessHeap(), 0, si.lpAttributeList);          // Y por último, libera la memoria anteriormente guardada
+    // ── Limpieza ──
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+    CloseHandle(hPipeOutRead);
+    pClosePseudoConsole(hPC);
+    DeleteProcThreadAttributeList(si.lpAttributeList);
+    HeapFree(GetProcessHeap(), 0, si.lpAttributeList);
 
-    outTerm += "\n";      // Se le agrega un newline a outTerm por pura estética
-    return outTerm;       // Y retorna la respuesta que haya recibido de la base de datos que fue guardada en outTerm
+    outTerm += "\n";        // Newline final por estética
+    return outTerm;
 }
 
-#else         // Si se detecta que NO se está compilando para windows...
+#else         // Si NO se compila para Windows (Linux): se conserva la implementación original con forkpty()
 
 #include <pty.h>          // Se necesita para la función forkpty() para ejecutar un comando con un proceso hijo
 #include <unistd.h>       // Sirve para leer los datos de salida del proceso hijo, ejecutr en el proceso hijo y salir del proceso hijo
 #include <sys/wait.h>     // Sirve para la función wait() para esperar a la finalización correcta del proceso hijo
-#include <cstdlib>
 
 std::string ptyfunc(std::string sqlinput,           // Pide como argumento el comando a ejecutar con el servidor MySQL
                     std::string inputuser,          // Usuario a autenticar
